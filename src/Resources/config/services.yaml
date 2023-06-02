@@ -1,0 +1,14 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    ErdmannFreunde\BookBundle\EventListener\:
+      resource: '../../EventListener/*'
+
+    ErdmannFreunde\BookBundle\EventListener\BackendAssetsListener:
+      tags:
+        - { name: 'kernel.event_listener', event: 'kernel.request' }
+
+    ErdmannFreunde\BookBundle\Picker\:
+      resource: '../../Picker/*'

@@ -1,0 +1,38 @@
+
+<div class="layout_latest block<?= $this->class; ?>">
+
+    <?php if ($this->hasText) : ?>
+      <h2><?= $this->linkHeadline; ?></h2>
+    <?php else: ?>
+      <h2>
+        <?= $this->headline; ?> 
+      </h2>
+    <?php endif; ?>
+    
+    <?php if ($this->categories) : ?>
+      <span class="categories"><?= $this->category_titles ?></span>
+    <?php endif; ?>
+  
+    <p class="info">
+      <?php if ($this->author) : ?>
+        <span class="author">von <?= $this->author ?></span>
+      <?php endif; ?>
+
+      <?php if ($this->date) : ?>
+        <span class="date"><?= $this->date ?></span>
+      <?php endif; ?>
+    </p>
+    
+    <?php if ($this->addImage): ?>
+        <?php $this->insert('image', $this->arrData); ?>
+    <?php endif; ?>
+
+    <?php if ($this->hasTeaser): ?>
+      <div class="teaser"><?= $this->teaser; ?></div>
+    <?php endif; ?>
+
+    <?php if ($this->hasText): ?>
+        <?= $this->more; ?>
+    <?php endif; ?>
+
+</div>

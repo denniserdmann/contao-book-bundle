@@ -1,0 +1,7 @@
+services:
+  _defaults:
+    autoconfigure: true
+
+  ErdmannFreunde\BookBundle\Migration\Version410\ImgSizeMigration:
+    arguments:
+      - '@database_connection'

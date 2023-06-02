@@ -1,0 +1,26 @@
+<?xml version="1.0" ?><xliff version="1.1">
+  <file datatype="php" original="system/modules/book/languages/en/tl_user.php" source-language="en" target-language="de">
+    <body>
+      <trans-unit id="tl_user.book.0">
+        <source>Allowed archives</source>
+        <target>Erlaubte Archive</target>
+      </trans-unit>
+      <trans-unit id="tl_user.book.1">
+        <source>Here you can grant access to one or more book archives.</source>
+        <target>Hier können Sie den Zugriff auf ein oder mehrere Book-Archive erlauben.</target>
+      </trans-unit>
+      <trans-unit id="tl_user.bookp.0">
+        <source>Book permissions</source>
+        <target>Archivrechte</target>
+      </trans-unit>
+      <trans-unit id="tl_user.bookp.1">
+        <source>Here you can define the book permissions.</source>
+        <target>Hier können Sie die Book-Archivrechte festlegen.</target>
+      </trans-unit>
+      <trans-unit id="tl_user.book_legend">
+        <source>Book permissions</source>
+        <target>Book-Archivrechte</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
