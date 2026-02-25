@@ -46,7 +46,7 @@ class BookPickerProvider extends AbstractInsertTagPickerProvider implements DcaP
         return $this->isMatchingInsertTag($config);
     }
 
-    public function getDcaTable(): string
+    public function getDcaTable(?PickerConfig $config = null): string
     {
         return 'tl_book';
     }
