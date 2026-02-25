@@ -29,7 +29,6 @@ $GLOBALS['TL_DCA']['tl_book'] = [
     'config' => [
         'dataContainer' => DC_Table::class,
         'ptable' => 'tl_book_archive',
-        'switchToEdit' => true,
         'enableVersioning' => true,
         'oninvalidate_cache_tags_callback' => [
             ['tl_book', 'addSitemapCacheInvalidationTag'],
