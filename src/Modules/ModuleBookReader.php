@@ -29,10 +29,6 @@ use ErdmannFreunde\BookBundle\Models\BookModel;
  */
 class ModuleBookReader extends ModuleBook
 {
-    public $book_archives;
-
-    public $id;
-
     /**
      * Template.
      *

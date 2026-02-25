@@ -31,24 +31,6 @@ use ErdmannFreunde\BookBundle\Models\BookModel;
  */
 class ModuleBookList extends ModuleBook
 {
-    public $book_filter_reset;
-
-    public $book_filter;
-
-    public $skipFirst;
-
-    public $numberOfItems;
-
-    public $book_featured;
-
-    public $filter_categories;
-
-    public $book_archives;
-
-    public $perPage;
-
-    public $id;
-
     protected $strTemplate = 'mod_booklist';
 
     /**

@@ -34,22 +34,6 @@ use ErdmannFreunde\BookBundle\Models\BookModel;
  */
 class ModuleBookArchive extends ModuleBook
 {
-    public $book_archives;
-
-    public $book_readerModule;
-
-    public $strColumn;
-
-    public $book_jumpToCurrent;
-
-    public $book_format;
-
-    public $headline;
-
-    public $perPage;
-
-    public $id;
-
     protected $strTemplate = 'mod_bookarchive';
 
     public function generate(): string

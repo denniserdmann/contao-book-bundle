@@ -83,8 +83,13 @@ class BookModel extends Model
             $arrColumns[] = "$t.categories LIKE '%\"".implode("\"%' OR $t.categories LIKE '%\"", array_map(\intval(...), $stringCategories))."\"%'";
         }
 
-        $arrOptions['limit'] = $intLimit;
-        $arrOptions['offset'] = $intOffset;
+        if ($intLimit > 0) {
+            $arrOptions['limit'] = $intLimit;
+        }
+
+        if ($intOffset > 0) {
+            $arrOptions['offset'] = $intOffset;
+        }
 
         return static::findBy($arrColumns, null, $arrOptions);
     }
