@@ -10,10 +10,6 @@ declare(strict_types=1);
  * @link       http://github.com/erdmannfreunde/contao-book-bundle
  */
 
-/*
- * Load tl_content language file
- */
-
 use Contao\Backend;
 use Contao\BackendUser;
 use Contao\Config;
@@ -31,19 +27,13 @@ use ErdmannFreunde\BookBundle\Classes\Book;
 use ErdmannFreunde\BookBundle\Models\BookArchiveModel;
 use ErdmannFreunde\BookBundle\Models\BookModel;
 
-System::loadLanguageFile('tl_content');
-
 $GLOBALS['TL_DCA']['tl_book'] = [
     // Config
     'config' => [
         'dataContainer' => DC_Table::class,
         'ptable' => 'tl_book_archive',
-        'ctable' => ['tl_content'],
         'switchToEdit' => true,
         'enableVersioning' => true,
-        'onsubmit_callback' => [
-            ['tl_book', 'adjustTime'],
-        ],
         'oninvalidate_cache_tags_callback' => [
             ['tl_book', 'addSitemapCacheInvalidationTag'],
         ],
@@ -81,13 +71,8 @@ $GLOBALS['TL_DCA']['tl_book'] = [
         'operations' => [
             'edit' => [
                 'label' => &$GLOBALS['TL_LANG']['tl_book']['edit'],
-                'href' => 'table=tl_content',
-                'icon' => 'edit.gif',
-            ],
-            'editheader' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book']['editmeta'],
                 'href' => 'act=edit',
-                'icon' => 'header.gif',
+                'icon' => 'edit.gif',
             ],
             'copy' => [
                 'label' => &$GLOBALS['TL_LANG']['tl_book']['copy'],
@@ -128,7 +113,7 @@ $GLOBALS['TL_DCA']['tl_book'] = [
     // Palettes
     'palettes' => [
         '__selector__' => ['addImage', 'source', 'overwriteMeta'],
-        'default' => '{title_legend},title,alias,categories,author;{date_legend},startDate,endDate;{meta_legend},pageTitle,robots,description,serpPreview;{teaser_legend},teaser;{image_legend},addImage;{source_legend:hide},source;{expert_legend:hide},cssClass,noComments,featured;{publish_legend},published,start,stop',
+        'default' => '{title_legend},title,alias,categories,author;{date_legend},endDate;{meta_legend},pageTitle,robots,description,serpPreview;{teaser_legend},teaser;{image_legend},addImage;{source_legend:hide},source;{expert_legend:hide},cssClass,noComments,featured;{publish_legend},published,start,stop',
     ],
 
     // Subpalettes
@@ -159,6 +144,7 @@ $GLOBALS['TL_DCA']['tl_book'] = [
             'sql' => "int(10) unsigned NOT NULL default '0'",
         ],
         'title' => [
+            'label' => &$GLOBALS['TL_LANG']['tl_book']['title'],
             'exclude' => true,
             'search' => true,
             'sorting' => true,
@@ -192,12 +178,6 @@ $GLOBALS['TL_DCA']['tl_book'] = [
             'inputType' => 'text',
             'eval' => ['maxlength' => 255, 'tl_class' => 'w50'],
             'sql' => "varchar(255) NOT NULL default ''",
-        ],
-        'startDate' => [
-            'exclude' => true,
-            'inputType' => 'text',
-            'eval' => ['rgxp' => 'date', 'doNotCopy' => true, 'datepicker' => true, 'tl_class' => 'w50 wizard'],
-            'sql' => 'int(10) unsigned NULL',
         ],
         'endDate' => [
             'default' => time(),
@@ -678,30 +658,6 @@ class tl_book extends Backend
         }
 
         return $arrOptions;
-    }
-
-    /**
-     * Adjust start end end time of the event based on date, span, startTime and endTime.
-     */
-    public function adjustTime(DataContainer $dc): void
-    {
-        // Return if there is no active record (override all) or no end date has been set yet
-        if (!$dc->activeRecord || !$dc->activeRecord->endDate) {
-            return;
-        }
-
-        $arrSet['endDate'] = $dc->activeRecord->endDate;
-
-        // Set start date
-        if ($dc->activeRecord->startDate) {
-            if ($dc->activeRecord->endDate > $dc->activeRecord->startDate) {
-                $arrSet['endDate'] = $dc->activeRecord->endDate;
-            } else {
-                $arrSet['endDate'] = $dc->activeRecord->startDate;
-            }
-        }
-
-        $this->Database->prepare('UPDATE tl_book %s WHERE id=?')->set($arrSet)->execute($dc->id);
     }
 
     /**

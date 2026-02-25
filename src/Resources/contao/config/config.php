@@ -11,7 +11,7 @@ declare(strict_types=1);
  */
 
 $GLOBALS['BE_MOD']['content']['books'] = [
-    'tables' => ['tl_book_archive', 'tl_book', 'tl_book_category', 'tl_content'],
+    'tables' => ['tl_book_archive', 'tl_book', 'tl_book_category'],
 ];
 
 /*

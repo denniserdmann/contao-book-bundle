@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace ErdmannFreunde\BookBundle\Modules;
 
-use Contao\ContentModel;
 use Contao\Date;
 use Contao\FilesModel;
 use Contao\FrontendTemplate;
@@ -97,27 +96,10 @@ abstract class ModuleBook extends Module
         // Display the "read more" button for external/article links
         if ('default' !== $objItem->source) {
             $objTemplate->text = true;
-        } // Compile the book text
-        else {
-            $objElement = ContentModel::findPublishedByPidAndTable($objItem->id, 'tl_book');
-
-            if (null !== $objElement) {
-                while ($objElement->next()) {
-                    $objTemplate->text .= self::getContentElement($objElement->current());
-                }
-            }
-
-            $objTemplate->hasText = static fn () => ContentModel::countPublishedByPidAndTable($objItem->id, 'tl_book') > 0;
         }
 
         // Add the meta information
-        if ($objItem->startDate && $objItem->endDate) {
-            $objTemplate->date = Date::parse($objPage->dateFormat, $objItem->startDate).' – '.Date::parse($objPage->dateFormat, $objItem->endDate);
-        } elseif ($objItem->startDate) {
-            $objTemplate->date = Date::parse($objPage->dateFormat, $objItem->startDate).' – heute';
-        } else {
-            $objTemplate->date = Date::parse($objPage->dateFormat, $objItem->endDate);
-        }
+        $objTemplate->date = Date::parse($objPage->dateFormat, $objItem->endDate);
 
         $objTemplate->timestamp = $objItem->endDate;
 
