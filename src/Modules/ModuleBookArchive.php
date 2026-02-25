@@ -1,31 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 /*
- * This file is part of Contao.
- *
- * (c) Leo Feyer
- *
- * @license LGPL-3.0-or-later
+ * Contao Book Bundle for Contao Open Source CMS.
+ * @copyright  Copyright (c) Erdmann & Freunde
+ * @author     Erdmann & Freunde <https://erdmann-freunde.de>
+ * @license    MIT
+ * @link       http://github.com/erdmannfreunde/contao-book-bundle
  */
 
- namespace ErdmannFreunde\BookBundle\Modules;
+namespace ErdmannFreunde\BookBundle\Modules;
 
-use Contao\CoreBundle\Exception\PageNotFoundException;
-use Contao\System;
-use Contao\StringUtil;
+use Contao\BackendTemplate;
 use Contao\Config;
-use Contao\Input;
+use Contao\CoreBundle\Exception\PageNotFoundException;
 use Contao\Date;
-#use Contao\ContentModel;
-
-#use Contao\FilesModel;
-#use Contao\FrontendTemplate;
-#use Contao\FrontendUser;
-use Contao\Module;
-
-use ErdmannFreunde\BookBundle\Classes\Book;
-use ErdmannFreunde\BookBundle\Models\BookArchiveModel;
-use ErdmannFreunde\BookBundle\Models\BookCategoryModel;
+use Contao\Environment;
+use Contao\Input;
+use Contao\Pagination;
+use Contao\StringUtil;
+use Contao\System;
+use ErdmannFreunde\BookBundle\Models\BookModel;
 
 /**
  * Front end module "book archive".
@@ -38,29 +34,19 @@ use ErdmannFreunde\BookBundle\Models\BookCategoryModel;
  */
 class ModuleBookArchive extends ModuleBook
 {
-    /**
-     * Template
-     * @var string
-     */
     protected $strTemplate = 'mod_bookarchive';
 
-    /**
-     * Display a wildcard in the back end
-     *
-     * @return string
-     */
-    public function generate()
+    public function generate(): string
     {
         $request = System::getContainer()->get('request_stack')->getCurrentRequest();
 
-        if ($request && System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest($request))
-        {
+        if ($request && System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest($request)) {
             $objTemplate = new BackendTemplate('be_wildcard');
-            $objTemplate->wildcard = '### ' . $GLOBALS['TL_LANG']['FMD']['bookarchive'][0] . ' ###';
+            $objTemplate->wildcard = '### '.mb_strtoupper($GLOBALS['TL_LANG']['FMD']['bookarchive'][0]).' ###';
             $objTemplate->title = $this->headline;
             $objTemplate->id = $this->id;
             $objTemplate->link = $this->name;
-            $objTemplate->href = StringUtil::specialcharsUrl(System::getContainer()->get('router')->generate('contao_backend', array('do'=>'themes', 'table'=>'tl_module', 'act'=>'edit', 'id'=>$this->id)));
+            $objTemplate->href = StringUtil::specialcharsUrl(System::getContainer()->get('router')->generate('contao_backend', ['do' => 'themes', 'table' => 'tl_module', 'act' => 'edit', 'id' => $this->id]));
 
             return $objTemplate->parse();
         }
@@ -68,39 +54,31 @@ class ModuleBookArchive extends ModuleBook
         $this->book_archives = $this->sortOutProtected(StringUtil::deserialize($this->book_archives));
 
         // No book archives available
-        if (empty($this->book_archives) || !\is_array($this->book_archives))
-        {
+        if (empty($this->book_archives)) {
             return '';
         }
 
         // Show the book reader if an item has been selected
-        if ($this->book_readerModule > 0 && (isset($_GET['items']) || (Config::get('useAutoItem') && isset($_GET['auto_item']))))
-        {
+        if ($this->book_readerModule > 0 && (isset($_GET['items']) || (Config::get('useAutoItem') && isset($_GET['auto_item'])))) {
             return $this->getFrontendModule($this->book_readerModule, $this->strColumn);
         }
 
         // Hide the module if no period has been selected
-        if ($this->book_jumpToCurrent == 'hide_module' && !isset($_GET['year']) && !isset($_GET['month']) && !isset($_GET['day']))
-        {
+        if ('hide_module' === $this->book_jumpToCurrent && !isset($_GET['year']) && !isset($_GET['month']) && !isset($_GET['day'])) {
             return '';
         }
 
         // Tag the book archives (see #2137)
-        if (System::getContainer()->has('fos_http_cache.http.symfony_response_tagger'))
-        {
+        if (System::getContainer()->has('fos_http_cache.http.symfony_response_tagger')) {
             $responseTagger = System::getContainer()->get('fos_http_cache.http.symfony_response_tagger');
-            $responseTagger->addTags(array_map(static function ($id) { return 'contao.db.tl_book_archive.' . $id; }, $this->book_archives));
+            $responseTagger->addTags(array_map(static fn ($id) => 'contao.db.tl_book_archive.'.$id, $this->book_archives));
         }
 
         return parent::generate();
     }
 
-    /**
-     * Generate the module
-     */
-    protected function compile()
+    protected function compile(): void
     {
-        /** @var PageModel $objPage */
         global $objPage;
 
         $limit = null;
@@ -113,83 +91,65 @@ class ModuleBookArchive extends ModuleBook
         $intDay = (int) Input::get('day');
 
         // Jump to the current period
-        if (!isset($_GET['year']) && !isset($_GET['month']) && !isset($_GET['day']) && $this->book_jumpToCurrent != 'all_items')
-        {
-            switch ($this->book_format)
-            {
+        if (!isset($_GET['year']) && !isset($_GET['month']) && !isset($_GET['day']) && 'all_items' !== $this->book_jumpToCurrent) {
+            switch ($this->book_format) {
                 case 'book_year':
-                    $intYear = date('Y');
+                    $intYear = (int) date('Y');
+                    break;
+
+                case 'book_day':
+                    $intDay = (int) date('Ymd');
                     break;
 
                 default:
                 case 'book_month':
-                    $intMonth = date('Ym');
-                    break;
-
-                case 'book_day':
-                    $intDay = date('Ymd');
+                    $intMonth = (int) date('Ym');
                     break;
             }
         }
 
         // Create the date object
-        try
-        {
-            if ($intYear)
-            {
-                $strDate = $intYear;
-                $objDate = new Date($strDate, 'Y');
+        try {
+            if ($intYear) {
+                $objDate = new Date((string) $intYear, 'Y');
                 $intBegin = $objDate->yearBegin;
                 $intEnd = $objDate->yearEnd;
-                $this->headline .= ' ' . date('Y', $objDate->tstamp);
-            }
-            elseif ($intMonth)
-            {
-                $strDate = $intMonth;
-                $objDate = new Date($strDate, 'Ym');
+                $this->headline .= ' '.date('Y', $objDate->tstamp);
+            } elseif ($intMonth) {
+                $objDate = new Date((string) $intMonth, 'Ym');
                 $intBegin = $objDate->monthBegin;
                 $intEnd = $objDate->monthEnd;
-                $this->headline .= ' ' . Date::parse('F Y', $objDate->tstamp);
-            }
-            elseif ($intDay)
-            {
-                $strDate = $intDay;
-                $objDate = new Date($strDate, 'Ymd');
+                $this->headline .= ' '.Date::parse('F Y', $objDate->tstamp);
+            } elseif ($intDay) {
+                $objDate = new Date((string) $intDay, 'Ymd');
                 $intBegin = $objDate->dayBegin;
                 $intEnd = $objDate->dayEnd;
-                $this->headline .= ' ' . Date::parse($objPage->dateFormat, $objDate->tstamp);
-            }
-            elseif ($this->book_jumpToCurrent == 'all_items')
-            {
+                $this->headline .= ' '.Date::parse($objPage->dateFormat, $objDate->tstamp);
+            } elseif ('all_items' === $this->book_jumpToCurrent) {
                 $intBegin = 0; // 1970-01-01 00:00:00
                 $intEnd = min(4294967295, PHP_INT_MAX); // 2106-02-07 07:28:15
             }
-        }
-        catch (\OutOfBoundsException $e)
-        {
-            throw new PageNotFoundException('Page not found: ' . Environment::get('uri'));
+        } catch (\OutOfBoundsException) {
+            throw new PageNotFoundException('Page not found: '.Environment::get('uri'));
         }
 
-        $this->Template->articles = array();
+        $this->Template->articles = [];
 
         // Split the result
-        if ($this->perPage > 0)
-        {
+        if ($this->perPage > 0) {
             // Get the total number of items
             $intTotal = BookModel::countPublishedFromToByPids($intBegin, $intEnd, $this->book_archives);
 
-            if ($intTotal > 0)
-            {
+            if ($intTotal > 0) {
                 $total = $intTotal;
 
                 // Get the current page
-                $id = 'page_a' . $this->id;
+                $id = 'page_a'.$this->id;
                 $page = (int) (Input::get($id) ?? 1);
 
                 // Do not index or cache the page if the page number is outside the range
-                if ($page < 1 || $page > max(ceil($total/$this->perPage), 1))
-                {
-                    throw new PageNotFoundException('Page not found: ' . Environment::get('uri'));
+                if ($page < 1 || $page > max(ceil($total / $this->perPage), 1)) {
+                    throw new PageNotFoundException('Page not found: '.Environment::get('uri'));
                 }
 
                 // Set limit and offset
@@ -204,44 +164,22 @@ class ModuleBookArchive extends ModuleBook
 
         // Determine sorting
         $t = BookModel::getTable();
-        $arrOptions = array();
+        $arrOptions = [];
 
-        switch ($this->book_order)
-        {
-            case 'order_headline_asc':
-                $arrOptions['order'] = "$t.headline";
-                break;
-
-            case 'order_headline_desc':
-                $arrOptions['order'] = "$t.headline DESC";
-                break;
-
-            case 'order_random':
-                $arrOptions['order'] = "RAND()";
-                break;
-
-            case 'order_date_asc':
-                $arrOptions['order'] = "$t.endDate";
-                break;
-
-            default:
-                $arrOptions['order'] = "$t.endDate DESC";
-        }
+        $arrOptions['order'] = match ($this->book_order) {
+            'order_headline_asc' => "$t.headline",
+            'order_headline_desc' => "$t.headline DESC",
+            'order_random' => 'RAND()',
+            'order_date_asc' => "$t.endDate",
+            default => "$t.endDate DESC",
+        };
 
         // Get the book items
-        if (isset($limit))
-        {
-            $objArticles = BookModel::findPublishedFromToByPids($intBegin, $intEnd, $this->book_archives, $limit, $offset, $arrOptions);
-        }
-        else
-        {
-            $objArticles = BookModel::findPublishedFromToByPids($intBegin, $intEnd, $this->book_archives, 0, 0, $arrOptions);
-        }
+        $objArticles = BookModel::findPublishedFromToByPids($intBegin, $intEnd, $this->book_archives, $limit ?? 0, $offset, $arrOptions);
 
         // Add the articles
-        if ($objArticles !== null)
-        {
-            $this->Template->articles = $this->parseArticles($objArticles);
+        if (null !== $objArticles) {
+            $this->Template->articles = $this->parseItems($objArticles);
         }
 
         $this->Template->headline = trim($this->headline);
@@ -249,5 +187,3 @@ class ModuleBookArchive extends ModuleBook
         $this->Template->empty = $GLOBALS['TL_LANG']['MSC']['empty'];
     }
 }
-
-class_alias(ModuleBookArchive::class, 'ModuleBookArchive');

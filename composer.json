@@ -2,16 +2,16 @@
   "name": "denniserdmann/contao-book-bundle",
   "type": "contao-bundle",
   "description": "Beschreibung",
-  "license":"LGPL-3.0-or-later",
+  "license": "LGPL-3.0-or-later",
   "authors": [
-        {
-          "name": "Dennis Erdmann",
-          "homepage": "https://erdmann-freunde.de"
-        }
+    {
+      "name": "Dennis Erdmann",
+      "homepage": "https://erdmann-freunde.de"
+    }
   ],
   "require": {
-    "php": ">=7.4",
-    "contao/core-bundle": "~4.9"
+    "php": "^8.2",
+    "contao/core-bundle": "^5.7"
   },
   "require-dev": {
     "contao/manager-plugin": "^2.0"
@@ -19,16 +19,7 @@
   "autoload": {
     "psr-4": {
       "ErdmannFreunde\\BookBundle\\": "src/"
-    },
-  "classmap": [
-    "src/Resources/contao/"
-  ],
-  "exclude-from-classmap": [
-    "src/Resources/contao/config/",
-    "src/Resources/contao/dca/",
-    "src/Resources/contao/languages/",
-    "src/Resources/contao/templates/"
-  ]
+    }
   },
   "extra": {
     "contao-manager-plugin": "ErdmannFreunde\\BookBundle\\ContaoManager\\Plugin"
@@ -43,6 +34,7 @@
     "ecs": [
       "@php tools/ecs/vendor/bin/ecs check src/ --fix --ansi",
       "@php tools/ecs/vendor/bin/ecs check src/ --config ecs_template.php --fix --ansi"
-    ]
+    ],
+    "rector": "@php tools/rector/vendor/bin/rector process src/ --ansi"
   }
 }

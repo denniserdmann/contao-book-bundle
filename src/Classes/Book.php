@@ -14,53 +14,48 @@ namespace ErdmannFreunde\BookBundle\Classes;
 
 use Contao\ArticleModel;
 use Contao\Config;
+use Contao\Database;
 use Contao\Environment;
-use Contao\Frontend;
 use Contao\PageModel;
 use Contao\StringUtil;
 use ErdmannFreunde\BookBundle\Models\BookArchiveModel;
 use ErdmannFreunde\BookBundle\Models\BookModel;
 
-class Book extends Frontend
+class Book
 {
     /**
      * URL cache array.
-     *
-     * @var array
      */
-    private static $arrUrlCache = [];
+    private static array $arrUrlCache = [];
 
     /**
-     * Add news items to the indexer.
-     *
-     * @param int  $intRoot
-     * @param bool $blnIsSitemap
+     * Add book items to the indexer.
      *
      * @throws \Exception
      */
-    public function getSearchablePages(array $arrPages, $intRoot = 0, $blnIsSitemap = false): array
+    public function getSearchablePages(array $arrPages, int $intRoot = 0, bool $blnIsSitemap = false): array
     {
         $arrRoot = [];
 
         if ($intRoot > 0) {
-            $arrRoot = $this->Database->getChildRecords($intRoot, 'tl_page');
+            $arrRoot = Database::getInstance()->getChildRecords($intRoot, 'tl_page');
         }
 
         $arrProcessed = [];
         $time = time();
 
-        // Get all news archives
+        // Get all book archives
         $objArchive = BookArchiveModel::findByProtected('');
 
         // Walk through each archive
         if (null !== $objArchive) {
             while ($objArchive->next()) {
-                // Skip news archives without target page
+                // Skip book archives without target page
                 if (!$objArchive->jumpTo) {
                     continue;
                 }
 
-                // Skip news archives outside the root nodes
+                // Skip book archives outside the root nodes
                 if (!empty($arrRoot) && !\in_array($objArchive->jumpTo, $arrRoot, true)) {
                     continue;
                 }
@@ -118,14 +113,9 @@ class Book extends Frontend
     /**
      * Generate a URL and return it as string.
      *
-     * @param bool $blnAddArchive
-     * @param bool $blnAbsolute
-     *
      * @throws \Exception
-     *
-     * @return string
      */
-    public static function generateBookUrl(BookModel $objItem, $blnAddArchive = false, $blnAbsolute = false): ?string
+    public static function generateBookUrl(BookModel $objItem, bool $blnAddArchive = false, bool $blnAbsolute = false): ?string
     {
         $strCacheKey = 'id_'.$objItem->id.($blnAbsolute ? '_absolute' : '');
 
@@ -140,7 +130,7 @@ class Book extends Frontend
         switch ($objItem->source) {
             // Link to an external page
             case 'external':
-                if (0 === strncmp($objItem->url, 'mailto:', 7)) {
+                if (str_starts_with($objItem->url, 'mailto:')) {
                     self::$arrUrlCache[$strCacheKey] = StringUtil::encodeEmail($objItem->url);
                 } else {
                     self::$arrUrlCache[$strCacheKey] = preg_replace('/&(amp;)?/i', '&amp;', $objItem->url);
@@ -185,11 +175,9 @@ class Book extends Frontend
     /**
      * Return the link of a book article.
      *
-     * @param string $strBase
-     *
      * @throws \Exception
      */
-    protected function getLink(BookModel $objItem, string $strUrl, $strBase = ''): string
+    protected function getLink(BookModel $objItem, string $strUrl, string $strBase = ''): string
     {
         switch ($objItem->source) {
             // Link to an external page

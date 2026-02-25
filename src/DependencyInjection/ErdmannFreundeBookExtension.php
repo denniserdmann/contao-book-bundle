@@ -19,13 +19,9 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class ErdmannFreundeBookExtension extends Extension
 {
-    /**
-     * {@inheritdoc}
-     */
     public function load(array $configs, ContainerBuilder $container): void
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
-        $loader->load('migrations.yml');
         $loader->load('services.yaml');
     }
 }

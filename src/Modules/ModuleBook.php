@@ -19,6 +19,7 @@ use Contao\FrontendTemplate;
 use Contao\FrontendUser;
 use Contao\Module;
 use Contao\StringUtil;
+use Contao\System;
 use ErdmannFreunde\BookBundle\Classes\Book;
 use ErdmannFreunde\BookBundle\Models\BookArchiveModel;
 use ErdmannFreunde\BookBundle\Models\BookCategoryModel;
@@ -35,24 +36,25 @@ abstract class ModuleBook extends Module
      */
     protected function sortOutProtected(array $arrArchives): array
     {
-        if (empty($arrArchives) || !\is_array($arrArchives)) {
+        if (empty($arrArchives)) {
             return $arrArchives;
         }
 
-        $this->import(FrontendUser::class, 'User');
+        $security = System::getContainer()->get('security.helper');
         $objArchive = BookArchiveModel::findMultipleByIds($arrArchives);
         $arrArchives = [];
 
         if (null !== $objArchive) {
             while ($objArchive->next()) {
                 if ($objArchive->protected) {
-                    if (!FE_USER_LOGGED_IN || !\is_array($this->User->groups)) {
+                    if (!$security->isGranted('ROLE_MEMBER')) {
                         continue;
                     }
 
+                    $objUser = FrontendUser::getInstance();
                     $groups = StringUtil::deserialize($objArchive->groups);
 
-                    if (empty($groups) || !\is_array($groups) || !\count(array_intersect($groups, $this->User->groups))) {
+                    if (empty($groups) || !\is_array($groups) || !\is_array($objUser->groups) || !\count(array_intersect($groups, $objUser->groups))) {
                         continue;
                     }
                 }
@@ -67,14 +69,9 @@ abstract class ModuleBook extends Module
     /**
      * Parse an item and return it as string.
      *
-     * @param BookModel $objItem
-     * @param bool           $blnAddArchive
-     * @param mixed          $strClass
-     * @param mixed          $intCount
-     *
      * @throws \Exception
      */
-    protected function parseItem($objItem, $blnAddArchive = false, $strClass = '', $intCount = 0): string
+    protected function parseItem(mixed $objItem, bool $blnAddArchive = false, string $strClass = '', int $intCount = 0): string
     {
         global $objPage;
 
@@ -94,8 +91,7 @@ abstract class ModuleBook extends Module
         // Clean the RTE output
         if ($objItem->teaser) {
             $objTemplate->hasTeaser = true;
-            $objTemplate->teaser = StringUtil::toHtml5($objItem->teaser);
-            $objTemplate->teaser = StringUtil::encodeEmail($objTemplate->teaser);
+            $objTemplate->teaser = StringUtil::encodeEmail($objItem->teaser);
         }
 
         // Display the "read more" button for external/article links
@@ -115,11 +111,10 @@ abstract class ModuleBook extends Module
         }
 
         // Add the meta information
-        if ($objItem->startDate && $objItem->endDate) 
-        {
-            $objTemplate->date = Date::parse($objPage->dateFormat, $objItem->startDate) . ' – ' . Date::parse($objPage->dateFormat, $objItem->endDate);
-        } elseif($objItem->startDate) {
-            $objTemplate->date = Date::parse($objPage->dateFormat, $objItem->startDate) . ' – heute';
+        if ($objItem->startDate && $objItem->endDate) {
+            $objTemplate->date = Date::parse($objPage->dateFormat, $objItem->startDate).' – '.Date::parse($objPage->dateFormat, $objItem->endDate);
+        } elseif ($objItem->startDate) {
+            $objTemplate->date = Date::parse($objPage->dateFormat, $objItem->startDate).' – heute';
         } else {
             $objTemplate->date = Date::parse($objPage->dateFormat, $objItem->endDate);
         }
@@ -152,8 +147,9 @@ abstract class ModuleBook extends Module
         // Add an image
         if ($objItem->addImage && '' !== $objItem->singleSRC) {
             $objModel = FilesModel::findByUuid($objItem->singleSRC);
+            $projectDir = System::getContainer()->getParameter('kernel.project_dir');
 
-            if (null !== $objModel && is_file(TL_ROOT.'/'.$objModel->path)) {
+            if (null !== $objModel && is_file($projectDir.'/'.$objModel->path)) {
                 // Do not override the field now that we have a model registry (see #6303)
                 $arrArticle = $objItem->row();
 
@@ -194,12 +190,9 @@ abstract class ModuleBook extends Module
     /**
      * Parse one or more items and return them as array.
      *
-     * @param BookModel $objArticles
-     * @param bool           $blnAddArchive
-     *
      * @throws \Exception
      */
-    protected function parseItems($objArticles, $blnAddArchive = false): array
+    protected function parseItems(mixed $objArticles, bool $blnAddArchive = false): array
     {
         $limit = $objArticles->count();
 
@@ -230,14 +223,9 @@ abstract class ModuleBook extends Module
     /**
      * Generate a link and return it as string.
      *
-     * @param mixed $strLink
-     * @param mixed $objItem
-     * @param mixed $blnAddArchive
-     * @param mixed $blnIsReadMore
-     *
      * @throws \Exception
      */
-    protected function generateLink($strLink, $objItem, $blnAddArchive = false, $blnIsReadMore = false): string
+    protected function generateLink(string $strLink, mixed $objItem, bool $blnAddArchive = false, bool $blnIsReadMore = false): string
     {
         // Internal link
         if ('external' !== $objItem->source) {
@@ -253,12 +241,10 @@ abstract class ModuleBook extends Module
         // Ampersand URIs
         $strArticleUrl = StringUtil::ampersand($objItem->url);
 
-        global $objPage;
-
         $attributes = '';
 
         if ($objItem->target) {
-            $attributes = ('xhtml' === $objPage->outputFormat ? ' onclick="return !window.open(this.href)"' : ' target="_blank"');
+            $attributes = ' target="_blank" rel="noreferrer noopener"';
         }
 
         // External link

@@ -2,7 +2,7 @@ name: contao-book
 
 services:
     appserver:
-        type: php:7.4
+        type: php:8.2
         via: cli
 
 tooling:
@@ -14,6 +14,14 @@ tooling:
         service: appserver
         cmd: composer install -d tools/ecs
 
+    rector-init:
+        service: appserver
+        cmd: composer install -d tools/rector
+
     ecs:
         service: appserver
         cmd: composer ecs
+
+    rector:
+        service: appserver
+        cmd: composer rector

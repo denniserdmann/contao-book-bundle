@@ -31,11 +31,6 @@ use ErdmannFreunde\BookBundle\Models\BookModel;
  */
 class ModuleBookList extends ModuleBook
 {
-    /**
-     * Template.
-     *
-     * @var string
-     */
     protected $strTemplate = 'mod_booklist';
 
     /**
@@ -43,11 +38,13 @@ class ModuleBookList extends ModuleBook
      */
     public function generate(): string
     {
-        if (TL_MODE === 'BE') {
+        $request = System::getContainer()->get('request_stack')->getCurrentRequest();
+
+        if ($request && System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest($request)) {
             $objTemplate = new BackendTemplate('be_wildcard');
 
-            $objTemplate->wildcard = '### '.$GLOBALS['TL_LANG']['FMD']['booklist'][0].' ###';
-            $objTemplate->headline = $this->title;
+            $objTemplate->wildcard = '### '.mb_strtoupper($GLOBALS['TL_LANG']['FMD']['booklist'][0]).' ###';
+            $objTemplate->title = $this->headline;
             $objTemplate->id = $this->id;
             $objTemplate->link = $this->name;
             $objTemplate->href = StringUtil::specialcharsUrl(System::getContainer()->get('router')->generate('contao_backend', ['do' => 'themes', 'table' => 'tl_module', 'act' => 'edit', 'id' => $this->id]));
@@ -174,12 +171,9 @@ class ModuleBookList extends ModuleBook
     /**
      * Count the total matching items.
      *
-     * @param array $bookArchives
-     * @param bool  $blnFeatured
-     *
      * @return int
      */
-    protected function countItems($bookArchives, $blnFeatured, $arrCategories)
+    protected function countItems(array $bookArchives, ?bool $blnFeatured, array $arrCategories): int
     {
         return BookModel::countPublishedByPids($bookArchives, $blnFeatured, $arrCategories);
     }
@@ -187,14 +181,9 @@ class ModuleBookList extends ModuleBook
     /**
      * Fetch the matching items.
      *
-     * @param array $bookArchives
-     * @param bool  $blnFeatured
-     * @param int   $limit
-     * @param int   $offset
-     *
      * @return Collection|array<BookModel>|BookModel|null
      */
-    protected function fetchItems($bookArchives, $blnFeatured, $limit, $offset, $arrCategories)
+    protected function fetchItems(array $bookArchives, ?bool $blnFeatured, int $limit, int $offset, array $arrCategories)
     {
         $order = 'tl_book.endDate IS NOT NULL, tl_book.endDate DESC';
 

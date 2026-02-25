@@ -16,19 +16,15 @@ use Contao\CoreBundle\Picker\AbstractInsertTagPickerProvider;
 use Contao\CoreBundle\Picker\DcaPickerProviderInterface;
 use Contao\CoreBundle\Picker\PickerConfig;
 use Knp\Menu\FactoryInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class BookPickerProvider extends AbstractInsertTagPickerProvider implements DcaPickerProviderInterface
 {
-    private Security $security;
-
-    public function __construct(FactoryInterface $menuFactory, RouterInterface $router, ?TranslatorInterface $translator, Security $security)
+    public function __construct(FactoryInterface $menuFactory, RouterInterface $router, ?TranslatorInterface $translator, private readonly Security $security)
     {
         parent::__construct($menuFactory, $router, $translator);
-
-        $this->security = $security;
     }
 
     public function getName(): string
@@ -36,7 +32,7 @@ class BookPickerProvider extends AbstractInsertTagPickerProvider implements DcaP
         return 'bookPicker';
     }
 
-    public function supportsContext($context): bool
+    public function supportsContext(string $context): bool
     {
         return \in_array($context, ['book', 'link'], true) && $this->security->isGranted('contao_user.modules', 'book');
     }
@@ -83,7 +79,7 @@ class BookPickerProvider extends AbstractInsertTagPickerProvider implements DcaP
         return $attributes;
     }
 
-    public function convertDcaValue(PickerConfig $config, $value): string
+    public function convertDcaValue(PickerConfig $config, mixed $value): string
     {
         if ('book' === $config->getContext()) {
             return (string) $value;
@@ -92,7 +88,7 @@ class BookPickerProvider extends AbstractInsertTagPickerProvider implements DcaP
         return sprintf($this->getInsertTag($config), $value);
     }
 
-    protected function getRouteParameters(PickerConfig $config = null): array
+    protected function getRouteParameters(?PickerConfig $config = null): array
     {
         return ['do' => 'book'];
     }

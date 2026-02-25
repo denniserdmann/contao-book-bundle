@@ -19,22 +19,13 @@ use Doctrine\DBAL\Exception;
 
 class ImgSizeMigration extends AbstractMigration
 {
-    /**
-     * @var Connection
-     */
-    private $connection;
-
-    public function __construct(Connection $connection)
+    public function __construct(private readonly Connection $connection)
     {
-        $this->connection = $connection;
     }
 
     public function shouldRun(): bool
     {
-        $schemaManager =
-            method_exists(Connection::class, 'createSchemaManager')
-                ? $this->connection->createSchemaManager()
-                : $this->connection->getSchemaManager();
+        $schemaManager = $this->connection->createSchemaManager();
 
         if (!$schemaManager->tablesExist(['tl_book'])) {
             return false;

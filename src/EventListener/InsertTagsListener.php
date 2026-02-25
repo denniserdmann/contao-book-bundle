@@ -12,25 +12,21 @@ declare(strict_types=1);
 
 namespace ErdmannFreunde\BookBundle\EventListener;
 
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\ServiceAnnotation\Hook;
 use ErdmannFreunde\BookBundle\Classes\Book;
 use ErdmannFreunde\BookBundle\Models\BookModel;
 
-/**
- * @Hook("replaceInsertTags")
- */
+#[AsHook('replaceInsertTags')]
 class InsertTagsListener
 {
     private const SUPPORTED_TAGS = ['book_url'];
-    private ContaoFramework $framework;
 
-    public function __construct(ContaoFramework $framework)
+    public function __construct(private readonly ContaoFramework $framework)
     {
-        $this->framework = $framework;
     }
 
-    public function __invoke(string $insertTag, bool $useCache, string $cachedValue, array $flags, array $tags, array $cache, int $_rit, int $_cnt)
+    public function __invoke(string $insertTag, bool $useCache, string $cachedValue, array $flags, array $tags, array $cache, int $_rit, int $_cnt): string|false
     {
         $elements = explode('::', $insertTag);
         $key = strtolower($elements[0]);

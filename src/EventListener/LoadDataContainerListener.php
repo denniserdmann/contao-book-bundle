@@ -12,28 +12,23 @@ declare(strict_types=1);
 
 namespace ErdmannFreunde\BookBundle\EventListener;
 
-use Contao\CoreBundle\ServiceAnnotation\Hook;
-use ErdmannFreunde\BookBundle\EventListener\DataContainer\MissingLanguageIconListener;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use ErdmannFreunde\BookBundle\EventListener\DataContainer\BookChildTableListener;
+use ErdmannFreunde\BookBundle\EventListener\DataContainer\MissingLanguageIconListener;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Terminal42\ChangeLanguage\EventListener\BackendView\ParentChildViewListener;
 use Terminal42\ChangeLanguage\EventListener\DataContainer\ParentTableListener;
 
-/**
- * @Hook("loadDataContainer")
- */
+#[AsHook('loadDataContainer')]
 class LoadDataContainerListener
 {
-    private ParameterBagInterface $params;
-
-    public function __construct(ParameterBagInterface $params)
+    public function __construct(private readonly ParameterBagInterface $params)
     {
-        $this->params = $params;
     }
 
     public function __invoke(string $table): void
     {
-        $bundles = $this->params->get('kernel.bundles');
+        $bundles = (array) $this->params->get('kernel.bundles');
 
         if (isset($bundles['Terminal42ChangeLanguageBundle'])) {
             switch ($table) {

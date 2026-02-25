@@ -22,23 +22,14 @@ use Contao\StringUtil;
  */
 class BookModel extends Model
 {
-    /**
-     * Table name.
-     *
-     * @var string
-     */
     protected static $strTable = 'tl_book';
 
     /**
      * Find a published book item from one or more book archives by its ID or alias.
      *
-     * @param mixed $varId      The numeric ID or alias name
-     * @param array $arrPids    An array of parent IDs
-     * @param array $arrOptions An optional options array
-     *
      * @return BookModel|null The model or null if there are no book items
      */
-    public static function findPublishedByParentAndIdOrAlias($varId, array $arrPids, array $arrOptions = []): ?self
+    public static function findPublishedByParentAndIdOrAlias(int|string $varId, array $arrPids, array $arrOptions = []): ?self
     {
         if (empty($arrPids) || !\is_array($arrPids)) {
             return null;
@@ -59,17 +50,11 @@ class BookModel extends Model
     /**
      * Find published book items by their parent ID.
      *
-     * @param array     $arrPids     An array of book archive IDs
-     * @param bool|null $blnFeatured If true, return only featured book items, if false, return only unfeatured book items
-     * @param int       $intLimit    An optional limit
-     * @param int       $intOffset   An optional offset
-     * @param array     $arrOptions  An optional options array
-     *
      * @return Collection|BookModel[]|BookModel|null A collection of models or null if there are no book items
      */
-    public static function findPublishedByPids(array $arrPids, bool $blnFeatured = null, $intLimit = 0, $intOffset = 0, array $arrOptions = [], array $arrCategories = [])
+    public static function findPublishedByPids(array $arrPids, ?bool $blnFeatured = null, int $intLimit = 0, int $intOffset = 0, array $arrOptions = [], array $arrCategories = [])
     {
-        if (empty($arrPids) || !\is_array($arrPids)) {
+        if (empty($arrPids)) {
             return null;
         }
 
@@ -82,7 +67,7 @@ class BookModel extends Model
             $arrColumns[] = "$t.featured=''";
         }
 
-        if (!BE_USER_LOGGED_IN || TL_MODE === 'BE') {
+        if (!static::isPreviewMode($arrOptions)) {
             $time = Date::floorToMinute();
             $arrColumns[] = "$t.published='1' AND ($t.start='' OR $t.start<='$time') AND ($t.stop='' OR $t.stop>'$time')";
         }
@@ -107,15 +92,11 @@ class BookModel extends Model
     /**
      * Count published book items by their parent ID.
      *
-     * @param array     $arrPids     An array of book archive IDs
-     * @param bool|null $blnFeatured If true, return only featured book items, if false, return only unfeatured book items
-     * @param array     $arrOptions  An optional options array
-     *
      * @return int The number of book items
      */
-    public static function countPublishedByPids(array $arrPids, bool $blnFeatured = null, array $arrCategories = [], array $arrOptions = []): int
+    public static function countPublishedByPids(array $arrPids, ?bool $blnFeatured = null, array $arrCategories = [], array $arrOptions = []): int
     {
-        if (empty($arrPids) || !\is_array($arrPids)) {
+        if (empty($arrPids)) {
             return 0;
         }
 
@@ -145,10 +126,6 @@ class BookModel extends Model
     /**
      * Find published book items by their parent ID.
      *
-     * @param int   $intId      The book archive ID
-     * @param int   $intLimit   An optional limit
-     * @param array $arrOptions An optional options array
-     *
      * @return Collection|BookModel[]|BookModel|null A collection of models or null if there are no book items
      */
     public static function findPublishedByPid(int $intId, int $intLimit = 0, array $arrOptions = [])
@@ -174,9 +151,6 @@ class BookModel extends Model
 
     /**
      * Find published book items with the default redirect target by their parent ID.
-     *
-     * @param int   $intPid     The book archive ID
-     * @param array $arrOptions An optional options array
      *
      * @return Collection|BookModel[]|BookModel|null A collection of models or null if there are no book items
      */

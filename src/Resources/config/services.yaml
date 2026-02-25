@@ -4,11 +4,14 @@ services:
         autoconfigure: true
 
     ErdmannFreunde\BookBundle\EventListener\:
-      resource: '../../EventListener/*'
+        resource: '../../EventListener/*'
 
     ErdmannFreunde\BookBundle\EventListener\BackendAssetsListener:
-      tags:
-        - { name: 'kernel.event_listener', event: 'kernel.request' }
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.request' }
+
+    ErdmannFreunde\BookBundle\Migration\:
+        resource: '../../Migration/*'
 
     ErdmannFreunde\BookBundle\Picker\:
-      resource: '../../Picker/*'
+        resource: '../../Picker/*'

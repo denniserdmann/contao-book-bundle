@@ -15,7 +15,6 @@ use PhpCsFixer\Fixer\Strict\StrictParamFixer;
 use SlevomatCodingStandard\Sniffs\Namespaces\ReferenceUsedNamesOnlySniff;
 use SlevomatCodingStandard\Sniffs\TypeHints\DisallowArrayTypeHintSyntaxSniff;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
-use Symplify\EasyCodingStandard\ValueObject\Option;
 
 return static function (ECSConfig $ecsConfig): void {
     $ecsConfig->sets([__DIR__.'/tools/ecs/vendor/contao/easy-coding-standard/config/contao.php']);
@@ -36,8 +35,6 @@ return static function (ECSConfig $ecsConfig): void {
     ]);
 
     $ecsConfig->parallel();
-
-    $parameters = $ecsConfig->parameters();
-    $parameters->set(Option::FILE_EXTENSIONS, ['html5']);
-    $parameters->set(Option::CACHE_DIRECTORY, sys_get_temp_dir().'/ecs_template_cache');
+    $ecsConfig->fileExtensions(['html5']);
+    $ecsConfig->cacheDirectory(sys_get_temp_dir().'/ecs_template_cache');
 };
