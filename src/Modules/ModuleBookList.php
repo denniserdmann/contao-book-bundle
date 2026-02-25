@@ -128,14 +128,14 @@ class ModuleBookList extends ModuleBook
             $arrValues[] = 'featured' === $this->book_featured ? '1' : '';
         }
 
-        $arrPids = StringUtil::deserialize($this->book_archives);
+        $arrPids = StringUtil::deserialize($this->book_archives, true);
         $arrColumns[] = 'tl_book.pid IN('.implode(',', array_map(\intval(...), $arrPids)).')';
 
         $arrCategoryIds = [];
 
         // Pre-filter items based on filter_categories
         if ($this->filter_categories) {
-            $arrCategoryIds = StringUtil::deserialize($this->filter_categories);
+            $arrCategoryIds = StringUtil::deserialize($this->filter_categories, true);
         }
 
         // add book pagination Get the total number of items
