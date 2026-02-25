@@ -13,60 +13,60 @@ declare(strict_types=1);
 use Contao\Backend;
 use Contao\BackendUser;
 
-$GLOBALS['TL_DCA']['tl_module']['palettes']['booklist'] = '{title_legend},name,headline,type;{config_legend},book_archives,book_readerModule,book_featured,numberOfItems,filter_categories,perPage;{nav_legend},book_filter,book_filter_reset;{redirect_legend},jumpTo;{template_legend:hide},book_template,customTpl;{image_legend:hide},imgSize;{protected_legend:hide},protected;{expert_legend:hide},guests,cssID,space';
-$GLOBALS['TL_DCA']['tl_module']['palettes']['bookreader'] = '{title_legend},name,headline,type;{config_legend},book_archives;{template_legend:hide},book_template,customTpl;{protected_legend:hide},{image_legend:hide},imgSize;protected;{expert_legend:hide},guests,cssID,space';
+$GLOBALS['TL_DCA']['tl_module_book']['palettes']['booklist'] = '{title_legend},name,headline,type;{config_legend},book_archives,book_readerModule,book_featured,numberOfItems,filter_categories,perPage;{nav_legend},book_filter,book_filter_reset;{redirect_legend},jumpTo;{template_legend:hide},book_template,customTpl;{image_legend:hide},imgSize;{protected_legend:hide},protected;{expert_legend:hide},guests,cssID,space';
+$GLOBALS['TL_DCA']['tl_module_book']['palettes']['bookreader'] = '{title_legend},name,headline,type;{config_legend},book_archives;{template_legend:hide},book_template,customTpl;{protected_legend:hide},{image_legend:hide},imgSize;protected;{expert_legend:hide},guests,cssID,space';
 
 /*
  * Add fields to tl_module
  */
-$GLOBALS['TL_DCA']['tl_module']['fields']['book_archives'] = [
-    'label' => &$GLOBALS['TL_LANG']['tl_module']['book_archives'],
+$GLOBALS['TL_DCA']['tl_module_book']['fields']['book_archives'] = [
+    'label' => &$GLOBALS['TL_LANG']['tl_module_book']['book_archives'],
     'exclude' => true,
     'inputType' => 'checkbox',
-    'options_callback' => ['tl_module', 'getBookArchives'],
+    'options_callback' => ['tl_module_book', 'getBookArchives'],
     'eval' => ['multiple' => true, 'mandatory' => true],
     'sql' => 'blob NULL',
 ];
 
-$GLOBALS['TL_DCA']['tl_module']['fields']['book_template'] = [
-    'label' => &$GLOBALS['TL_LANG']['tl_module']['book_template'],
+$GLOBALS['TL_DCA']['tl_module_book']['fields']['book_template'] = [
+    'label' => &$GLOBALS['TL_LANG']['tl_module_book']['book_template'],
     'default' => 'book_short',
     'exclude' => true,
     'inputType' => 'select',
-    'options_callback' => ['tl_module', 'getBookTemplates'],
+    'options_callback' => ['tl_module_book', 'getBookTemplates'],
     'eval' => ['tl_class' => 'w50'],
     'sql' => "varchar(32) NOT NULL default ''",
 ];
 
-$GLOBALS['TL_DCA']['tl_module']['fields']['book_featured'] = [
-    'label' => &$GLOBALS['TL_LANG']['tl_module']['book_featured'],
+$GLOBALS['TL_DCA']['tl_module_book']['fields']['book_featured'] = [
+    'label' => &$GLOBALS['TL_LANG']['tl_module_book']['book_featured'],
     'default' => 'all_items',
     'exclude' => true,
     'inputType' => 'select',
     'options' => ['all_items', 'featured', 'unfeatured'],
-    'reference' => &$GLOBALS['TL_LANG']['tl_module'],
+    'reference' => &$GLOBALS['TL_LANG']['tl_module_book'],
     'eval' => ['tl_class' => 'w50 clr'],
     'sql' => "varchar(16) NOT NULL default ''",
 ];
 
-$GLOBALS['TL_DCA']['tl_module']['fields']['book_filter'] = [
-    'label' => &$GLOBALS['TL_LANG']['tl_module']['book_filter'],
+$GLOBALS['TL_DCA']['tl_module_book']['fields']['book_filter'] = [
+    'label' => &$GLOBALS['TL_LANG']['tl_module_book']['book_filter'],
     'exclude' => true,
     'inputType' => 'checkbox',
     'eval' => ['tl_class' => 'w50 clr'],
     'sql' => ['type' => 'boolean', 'default' => 0],
 ];
 
-$GLOBALS['TL_DCA']['tl_module']['fields']['book_filter_reset'] = [
-    'label' => &$GLOBALS['TL_LANG']['tl_module']['book_filter_reset'],
+$GLOBALS['TL_DCA']['tl_module_book']['fields']['book_filter_reset'] = [
+    'label' => &$GLOBALS['TL_LANG']['tl_module_book']['book_filter_reset'],
     'exclude' => true,
     'inputType' => 'checkbox',
     'eval' => ['tl_class' => 'w50'],
     'sql' => ['type' => 'boolean', 'default' => 0],
 ];
 
-$GLOBALS['TL_DCA']['tl_module']['fields']['filter_categories'] = [
-    'label' => &$GLOBALS['TL_LANG']['tl_module']['filter_categories'],
+$GLOBALS['TL_DCA']['tl_module_book']['fields']['filter_categories'] = [
+    'label' => &$GLOBALS['TL_LANG']['tl_module_book']['filter_categories'],
     'exclude' => true,
     'filter' => true,
     'inputType' => 'select',
@@ -75,22 +75,22 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['filter_categories'] = [
     'sql' => 'blob NULL',
 ];
 
-$GLOBALS['TL_DCA']['tl_module']['fields']['book_readerModule'] = [
-    'label' => &$GLOBALS['TL_LANG']['tl_module']['book_readerModule'],
+$GLOBALS['TL_DCA']['tl_module_book']['fields']['book_readerModule'] = [
+    'label' => &$GLOBALS['TL_LANG']['tl_module_book']['book_readerModule'],
     'exclude' => true,
     'inputType' => 'select',
-    'options_callback' => ['tl_module', 'getReaderModules'],
-    'reference' => &$GLOBALS['TL_LANG']['tl_module'],
+    'options_callback' => ['tl_module_book', 'getReaderModules'],
+    'reference' => &$GLOBALS['TL_LANG']['tl_module_book'],
     'eval' => ['includeBlankOption' => true, 'tl_class' => 'w50'],
     'sql' => 'int(10) unsigned NOT NULL default 0',
 ];
 
 /**
- * Class tl_module.
+ * Class tl_module_book.
  *
  * Provide miscellaneous methods that are used by the data configuration array.
  */
-class tl_module extends Backend
+class tl_module_book extends Backend
 {
     /**
      * Import the back end user object.
