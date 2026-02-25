@@ -124,6 +124,70 @@ class BookModel extends Model
     }
 
     /**
+     * Count published book items from a date range by their parent IDs.
+     *
+     * @return int The number of book items
+     */
+    public static function countPublishedFromToByPids(int $intFrom, int $intTo, array $arrPids, array $arrOptions = []): int
+    {
+        if (empty($arrPids)) {
+            return 0;
+        }
+
+        $t = static::$strTable;
+        $arrColumns = [
+            "$t.pid IN(".implode(',', array_map('\intval', $arrPids)).')',
+            "$t.endDate>=?",
+            "$t.endDate<=?",
+        ];
+
+        if (!static::isPreviewMode($arrOptions)) {
+            $time = Date::floorToMinute();
+            $arrColumns[] = "$t.published='1' AND ($t.start='' OR $t.start<='$time') AND ($t.stop='' OR $t.stop>'$time')";
+        }
+
+        return static::countBy($arrColumns, [$intFrom, $intTo], $arrOptions);
+    }
+
+    /**
+     * Find published book items from a date range by their parent IDs.
+     *
+     * @return Collection|BookModel[]|BookModel|null A collection of models or null if there are no book items
+     */
+    public static function findPublishedFromToByPids(int $intFrom, int $intTo, array $arrPids, int $intLimit = 0, int $intOffset = 0, array $arrOptions = [])
+    {
+        if (empty($arrPids)) {
+            return null;
+        }
+
+        $t = static::$strTable;
+        $arrColumns = [
+            "$t.pid IN(".implode(',', array_map('\intval', $arrPids)).')',
+            "$t.endDate>=?",
+            "$t.endDate<=?",
+        ];
+
+        if (!static::isPreviewMode($arrOptions)) {
+            $time = Date::floorToMinute();
+            $arrColumns[] = "$t.published='1' AND ($t.start='' OR $t.start<='$time') AND ($t.stop='' OR $t.stop>'$time')";
+        }
+
+        if (!isset($arrOptions['order'])) {
+            $arrOptions['order'] = "$t.endDate DESC";
+        }
+
+        if ($intLimit > 0) {
+            $arrOptions['limit'] = $intLimit;
+        }
+
+        if ($intOffset > 0) {
+            $arrOptions['offset'] = $intOffset;
+        }
+
+        return static::findBy($arrColumns, [$intFrom, $intTo], $arrOptions);
+    }
+
+    /**
      * Find published book items by their parent ID.
      *
      * @return Collection|BookModel[]|BookModel|null A collection of models or null if there are no book items

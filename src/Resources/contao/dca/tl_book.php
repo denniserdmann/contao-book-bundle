@@ -14,16 +14,29 @@ declare(strict_types=1);
  * Load tl_content language file
  */
 
+use Contao\Backend;
+use Contao\BackendUser;
+use Contao\Config;
 use Contao\CoreBundle\Exception\AccessDeniedException;
+use Contao\DataContainer;
+use Contao\Date;
+use Contao\DC_Table;
+use Contao\Image;
+use Contao\Input;
+use Contao\PageModel;
+use Contao\StringUtil;
+use Contao\System;
+use Contao\Versions;
+use ErdmannFreunde\BookBundle\Classes\Book;
 use ErdmannFreunde\BookBundle\Models\BookArchiveModel;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use ErdmannFreunde\BookBundle\Models\BookModel;
 
 System::loadLanguageFile('tl_content');
 
 $GLOBALS['TL_DCA']['tl_book'] = [
     // Config
     'config'      => [
-        'dataContainer'     => 'Table',
+        'dataContainer'     => DC_Table::class,
         'ptable'            => 'tl_book_archive',
         'ctable'            => ['tl_content'],
         'switchToEdit'      => true,
@@ -439,15 +452,14 @@ class tl_book extends Backend
             $root = $this->User->book;
         }
 
-        $id = Input::get('id') !== '' ? Input::get('id') : CURRENT_ID;
+        $id = Input::get('id');
 
         // Check current action
         switch (Input::get('act'))
         {
             case 'paste':
             case 'select':
-                // Check CURRENT_ID here (see #247)
-                if (!in_array(CURRENT_ID, $root, true))
+                if (!in_array($id, $root, true))
                 {
                     throw new AccessDeniedException('Not enough permissions to access book archive ID ' . $id . '.');
                 }
@@ -519,8 +531,7 @@ class tl_book extends Backend
                 $objArchive = $this->Database->prepare("SELECT id FROM tl_book WHERE pid=?")
                     ->execute($id);
 
-                /** @var SessionInterface $objSession */
-                $objSession = System::getContainer()->get('session');
+                $objSession = System::getContainer()->get('request_stack')->getSession();
 
                 $session = $objSession->all();
                 $session['CURRENT']['IDS'] = array_intersect((array) $session['CURRENT']['IDS'], $objArchive->fetchEach('id'));
@@ -563,7 +574,7 @@ class tl_book extends Backend
      * @throws Exception
      */
 
-    public function generateAlias($varValue, Contao\DataContainer $dc)
+    public function generateAlias($varValue, DataContainer $dc)
     {
         $aliasExists = function (string $alias) use ($dc): bool
         {
@@ -573,7 +584,7 @@ class tl_book extends Backend
         // Generate alias if there is none
         if (!$varValue)
         {
-            $varValue = Contao\System::getContainer()->get('contao.slug')->generate($dc->activeRecord->title, ErdmannFreunde\BookBundle\Models\BookArchiveModel::findByPk($dc->activeRecord->pid)->jumpTo, $aliasExists);
+            $varValue = System::getContainer()->get('contao.slug')->generate($dc->activeRecord->title, BookArchiveModel::findByPk($dc->activeRecord->pid)->jumpTo, $aliasExists);
         }
         elseif (preg_match('/^[1-9]\d*$/', $varValue))
         {
@@ -594,9 +605,9 @@ class tl_book extends Backend
      *
      * @return string
      */
-    public function getSerpUrl( ErdmannFreunde\BookBundle\Models\BookModel $model)
+    public function getSerpUrl(BookModel $model)
     {
-        return  ErdmannFreunde\BookBundle\Classes\Book::generateBookUrl($model, false, true);
+        return Book::generateBookUrl($model, false, true);
     }
 
     /**
@@ -606,15 +617,13 @@ class tl_book extends Backend
      *
      * @return string
      */
-    public function getTitleTag( ErdmannFreunde\BookBundle\Models\BookModel $model)
+    public function getTitleTag(BookModel $model)
     {
-        /** @var ErdmannFreunde\BookBundle\Models\BookArchiveModel $archive */
         if (!$archive = $model->getRelated('pid'))
         {
             return '';
         }
 
-        /** @var Contao\PageModel $page */
         if (!$page = $archive->getRelated('jumpTo'))
         {
             return '';
@@ -622,7 +631,6 @@ class tl_book extends Backend
 
         $page->loadDetails();
 
-        /** @var Contao\LayoutModel $layout */
         if (!$layout = $page->getRelated('layout'))
         {
             return '';
@@ -633,12 +641,14 @@ class tl_book extends Backend
         // Override the global page object, so we can replace the insert tags
         $GLOBALS['objPage'] = $page;
 
+        $insertTagParser = System::getContainer()->get('contao.insert_tag.parser');
+
         $title = implode(
             '%s',
             array_map(
-                static function ($strVal)
+                static function ($strVal) use ($insertTagParser)
                 {
-                    return str_replace('%', '%%', self::replaceInsertTags($strVal));
+                    return str_replace('%', '%%', $insertTagParser->replace($strVal));
                 },
                 explode('{{page::pageTitle}}', $layout->titleTag ?: '{{page::pageTitle}} - {{page::rootPageTitle}}', 2)
             )
@@ -776,7 +786,7 @@ class tl_book extends Backend
     {
         if (Input::get('tid'))
         {
-            $this->toggleVisibility(Contao\Input::get('tid'), (Contao\Input::get('state') == 1), (func_num_args() <= 12 ? null : func_get_arg(12)));
+            $this->toggleVisibility(Input::get('tid'), (Input::get('state') == 1), (func_num_args() <= 12 ? null : func_get_arg(12)));
             self::redirect(self::getReferer());
         }
 
@@ -803,7 +813,7 @@ class tl_book extends Backend
      * @param boolean $blnVisible
      * @param DataContainer|null $dc
      */
-    public function toggleVisibility($intId, $blnVisible, Contao\DataContainer $dc=null)
+    public function toggleVisibility($intId, $blnVisible, ?DataContainer $dc=null)
     {
         // Set the ID and action
         Input::setGet('id', $intId);

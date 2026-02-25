@@ -10,6 +10,9 @@ declare(strict_types=1);
  * @link       http://github.com/erdmannfreunde/contao-book-bundle
  */
 
+use Contao\Backend;
+use Contao\BackendUser;
+
 $GLOBALS['TL_DCA']['tl_module']['palettes']['booklist'] = '{title_legend},name,headline,type;{config_legend},book_archives,book_readerModule,book_featured,numberOfItems,filter_categories,perPage;{nav_legend},book_filter,book_filter_reset;{redirect_legend},jumpTo;{template_legend:hide},book_template,customTpl;{image_legend:hide},imgSize;{protected_legend:hide},protected;{expert_legend:hide},guests,cssID,space';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['bookreader'] = '{title_legend},name,headline,type;{config_legend},book_archives;{template_legend:hide},book_template,customTpl;{protected_legend:hide},{image_legend:hide},imgSize;protected;{expert_legend:hide},guests,cssID,space';
 

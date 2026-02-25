@@ -10,6 +10,10 @@ declare(strict_types=1);
  * @link       http://github.com/erdmannfreunde/contao-book-bundle
  */
 
+use Contao\Backend;
+use Contao\BackendUser;
+use Contao\DataContainer;
+use Contao\DC_Table;
 use Contao\StringUtil;
 
 /*
@@ -18,7 +22,7 @@ use Contao\StringUtil;
 $GLOBALS['TL_DCA']['tl_book_category'] = [
     // Config
     'config' => [
-        'dataContainer' => 'Table',
+        'dataContainer' => DC_Table::class,
         'enableVersioning' => true,
 
         'sql' => [

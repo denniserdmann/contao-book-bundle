@@ -10,14 +10,21 @@ declare(strict_types=1);
  * @link       http://github.com/erdmannfreunde/contao-book-bundle
  */
 
+use Contao\Backend;
+use Contao\BackendUser;
 use Contao\CoreBundle\Exception\AccessDeniedException;
-use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Contao\DataContainer;
+use Contao\DC_Table;
+use Contao\Image;
+use Contao\Input;
+use Contao\PageModel;
+use Contao\StringUtil;
+use Contao\System;
 
 $GLOBALS['TL_DCA']['tl_book_archive'] = [
     // Config
     'config' => [
-        'dataContainer'               => 'Table',
+        'dataContainer'               => DC_Table::class,
         'ctable'                      => ['tl_book'],
         'switchToEdit'                => true,
         'enableVersioning'            => true,
@@ -219,8 +226,7 @@ class tl_book_archive extends Backend
             $GLOBALS['TL_DCA']['tl_book_archive']['config']['notDeletable'] = true;
         }
 
-        /** @var SessionInterface $objSession */
-        $objSession = System::getContainer()->get('session');
+        $objSession = System::getContainer()->get('request_stack')->getSession();
 
         // Check current action
         switch (Input::get('act'))
@@ -306,8 +312,7 @@ class tl_book_archive extends Backend
             return;
         }
 
-        /** @var AttributeBagInterface $objSessionBag */
-        $objSessionBag = System::getContainer()->get('session')->getBag('contao_backend');
+        $objSessionBag = System::getContainer()->get('request_stack')->getSession()->getBag('contao_backend');
 
         $arrNew = $objSessionBag->get('new_records');
 
