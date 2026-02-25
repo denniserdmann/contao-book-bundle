@@ -28,7 +28,7 @@ class BookNavigationListener extends AbstractNavigationListener
         return 'items';
     }
 
-    protected function findCurrent(): ?BookModel
+    protected function findCurrent(): BookModel|null
     {
         $alias = $this->getAutoItem();
 
@@ -49,12 +49,12 @@ class BookNavigationListener extends AbstractNavigationListener
         return BookModel::findPublishedByParentAndIdOrAlias($alias, $archives->fetchEach('id'), $options);
     }
 
-    protected function findPublishedBy(array $columns, array $values = [], array $options = []): ?BookModel
+    protected function findPublishedBy(array $columns, array $values = [], array $options = []): BookModel|null
     {
         return BookModel::findOneBy(
             $this->addPublishedConditions($columns, BookModel::getTable()),
             $values,
-            $options
+            $options,
         );
     }
 }

@@ -30,7 +30,7 @@ class MissingLanguageIconListener
         if (\array_key_exists($table, self::$callbacks)) {
             LabelCallback::createAndRegister(
                 $table,
-                fn (array $args, $previousResult) => $this->{self::$callbacks[$table]}($args, $previousResult)
+                fn (array $args, $previousResult) => $this->{self::$callbacks[$table]}($args, $previousResult),
             );
         }
     }
@@ -43,12 +43,12 @@ class MissingLanguageIconListener
         $row = $args[0];
         $label = (string) $previousResult;
 
-        $archive = BookArchiveModel::findByPk($row['pid']);
+        $archive = BookArchiveModel::findById($row['pid']);
 
         if (
             null !== $archive
             && $archive->master
-            && (!$row['languageMain'] || null === BookModel::findByPk($row['languageMain']))
+            && (!$row['languageMain'] || null === BookModel::findById($row['languageMain']))
         ) {
             return $this->generateLabelWithWarning($label);
         }
@@ -58,12 +58,12 @@ class MissingLanguageIconListener
 
     private function generateLabelWithWarning(string $label, string $imgStyle = ''): string
     {
-        return $label.sprintf(
+        return $label.\sprintf(
             '<span style="padding-left:3px"><img src="%s" alt="%s" title="%s" style="%s"></span>',
             'bundles/terminal42changelanguage/language-warning.png',
             $GLOBALS['TL_LANG']['MSC']['noMainLanguage'],
             $GLOBALS['TL_LANG']['MSC']['noMainLanguage'],
-            $imgStyle
+            $imgStyle,
         );
     }
 }

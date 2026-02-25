@@ -1,0 +1,7 @@
+{
+    "name": "contao/rector-tool",
+    "require": {
+        "rector/rector": "^2.3",
+        "contao/rector": "^1.3"
+    }
+}

@@ -29,15 +29,15 @@ class BookModel extends Model
      *
      * @return BookModel|null The model or null if there are no book items
      */
-    public static function findPublishedByParentAndIdOrAlias(int|string $varId, array $arrPids, array $arrOptions = []): ?self
+    public static function findPublishedByParentAndIdOrAlias(int|string $varId, array $arrPids, array $arrOptions = []): self|null
     {
-        if (empty($arrPids) || !\is_array($arrPids)) {
+        if ([] === $arrPids || !\is_array($arrPids)) {
             return null;
         }
 
         $t = static::$strTable;
-        $arrColumns = !preg_match('/^[1-9]\d*$/', $varId) ? ["BINARY $t.alias=?"] : ["$t.id=?"];
-        $arrColumns[] = "$t.pid IN(".implode(',', array_map('\intval', $arrPids)).')';
+        $arrColumns = preg_match('/^[1-9]\d*$/', (string) $varId) ? ["$t.id=?"] : ["BINARY $t.alias=?"];
+        $arrColumns[] = "$t.pid IN(".implode(',', array_map(\intval(...), $arrPids)).')';
 
         if (!static::isPreviewMode($arrOptions)) {
             $time = Date::floorToMinute();
@@ -52,14 +52,14 @@ class BookModel extends Model
      *
      * @return Collection|BookModel[]|BookModel|null A collection of models or null if there are no book items
      */
-    public static function findPublishedByPids(array $arrPids, ?bool $blnFeatured = null, int $intLimit = 0, int $intOffset = 0, array $arrOptions = [], array $arrCategories = [])
+    public static function findPublishedByPids(array $arrPids, bool|null $blnFeatured = null, int $intLimit = 0, int $intOffset = 0, array $arrOptions = [], array $arrCategories = [])
     {
-        if (empty($arrPids)) {
+        if ([] === $arrPids) {
             return null;
         }
 
         $t = static::$strTable;
-        $arrColumns = ["$t.pid IN(".implode(',', array_map('\intval', $arrPids)).')'];
+        $arrColumns = ["$t.pid IN(".implode(',', array_map(\intval(...), $arrPids)).')'];
 
         if (true === $blnFeatured) {
             $arrColumns[] = "$t.featured='1'";
@@ -76,11 +76,11 @@ class BookModel extends Model
             $arrOptions['order'] = "$t.endDate DESC";
         }
 
-        // check if categories are selected and filter by them
-        // not working because $t.categories is still a serialized array
-        if ($arrCategories) {
+        // check if categories are selected and filter by them not working because
+        // $t.categories is still a serialized array
+        if ([] !== $arrCategories) {
             $stringCategories = StringUtil::deserialize($arrCategories);
-            $arrColumns[] = "$t.categories LIKE '%\"".implode("\"%' OR $t.categories LIKE '%\"", array_map('\intval', $stringCategories))."\"%'";
+            $arrColumns[] = "$t.categories LIKE '%\"".implode("\"%' OR $t.categories LIKE '%\"", array_map(\intval(...), $stringCategories))."\"%'";
         }
 
         $arrOptions['limit'] = $intLimit;
@@ -94,14 +94,14 @@ class BookModel extends Model
      *
      * @return int The number of book items
      */
-    public static function countPublishedByPids(array $arrPids, ?bool $blnFeatured = null, array $arrCategories = [], array $arrOptions = []): int
+    public static function countPublishedByPids(array $arrPids, bool|null $blnFeatured = null, array $arrCategories = [], array $arrOptions = []): int
     {
-        if (empty($arrPids)) {
+        if ([] === $arrPids) {
             return 0;
         }
 
         $t = static::$strTable;
-        $arrColumns = ["$t.pid IN(".implode(',', array_map('\intval', $arrPids)).')'];
+        $arrColumns = ["$t.pid IN(".implode(',', array_map(\intval(...), $arrPids)).')'];
 
         if (true === $blnFeatured) {
             $arrColumns[] = "$t.featured='1'";
@@ -115,9 +115,9 @@ class BookModel extends Model
         }
 
         // check if categories are selected and filter by them
-        if ($arrCategories) {
+        if ([] !== $arrCategories) {
             $stringCategories = StringUtil::deserialize($arrCategories);
-            $arrColumns[] = "$t.categories LIKE '%\"".implode("\"%' OR $t.categories LIKE '%\"", array_map('\intval', $stringCategories))."\"%'";
+            $arrColumns[] = "$t.categories LIKE '%\"".implode("\"%' OR $t.categories LIKE '%\"", array_map(\intval(...), $stringCategories))."\"%'";
         }
 
         return static::countBy($arrColumns, null, $arrOptions);
@@ -130,13 +130,13 @@ class BookModel extends Model
      */
     public static function countPublishedFromToByPids(int $intFrom, int $intTo, array $arrPids, array $arrOptions = []): int
     {
-        if (empty($arrPids)) {
+        if ([] === $arrPids) {
             return 0;
         }
 
         $t = static::$strTable;
         $arrColumns = [
-            "$t.pid IN(".implode(',', array_map('\intval', $arrPids)).')',
+            "$t.pid IN(".implode(',', array_map(\intval(...), $arrPids)).')',
             "$t.endDate>=?",
             "$t.endDate<=?",
         ];
@@ -156,13 +156,13 @@ class BookModel extends Model
      */
     public static function findPublishedFromToByPids(int $intFrom, int $intTo, array $arrPids, int $intLimit = 0, int $intOffset = 0, array $arrOptions = [])
     {
-        if (empty($arrPids)) {
+        if ([] === $arrPids) {
             return null;
         }
 
         $t = static::$strTable;
         $arrColumns = [
-            "$t.pid IN(".implode(',', array_map('\intval', $arrPids)).')',
+            "$t.pid IN(".implode(',', array_map(\intval(...), $arrPids)).')',
             "$t.endDate>=?",
             "$t.endDate<=?",
         ];

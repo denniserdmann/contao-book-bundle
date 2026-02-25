@@ -115,7 +115,7 @@ class Book
      *
      * @throws \Exception
      */
-    public static function generateBookUrl(BookModel $objItem, bool $blnAddArchive = false, bool $blnAbsolute = false): ?string
+    public static function generateBookUrl(BookModel $objItem, bool $blnAddArchive = false, bool $blnAbsolute = false): string|null
     {
         $strCacheKey = 'id_'.$objItem->id.($blnAbsolute ? '_absolute' : '');
 
@@ -147,7 +147,7 @@ class Book
 
             // Link to an article
             case 'article':
-                if (($objArticle = ArticleModel::findByPk($objItem->articleId)) instanceof ArticleModel && ($objPid = $objArticle->getRelated('pid')) instanceof PageModel) {
+                if (($objArticle = ArticleModel::findById($objItem->articleId)) instanceof ArticleModel && ($objPid = $objArticle->getRelated('pid')) instanceof PageModel) {
                     $params = '/articles/'.($objArticle->alias ?: $objArticle->id);
 
                     /** @var PageModel $objPid */
@@ -158,7 +158,7 @@ class Book
 
         // Link to the default page
         if (null === self::$arrUrlCache[$strCacheKey]) {
-            $objPage = PageModel::findByPk($objItem->getRelated('pid')->jumpTo);
+            $objPage = PageModel::findById($objItem->getRelated('pid')->jumpTo);
 
             if (!$objPage instanceof PageModel) {
                 self::$arrUrlCache[$strCacheKey] = preg_replace('/&(amp;)?/i', '&amp;', Environment::get('request'));
@@ -194,7 +194,7 @@ class Book
 
             // Link to an article
             case 'article':
-                if (($objArticle = ArticleModel::findByPk($objItem->articleId)) instanceof ArticleModel && ($objPid = $objArticle->getRelated('pid')) instanceof PageModel) {
+                if (($objArticle = ArticleModel::findById($objItem->articleId)) instanceof ArticleModel && ($objPid = $objArticle->getRelated('pid')) instanceof PageModel) {
                     /** @var PageModel $objPid */
                     return StringUtil::ampersand($objPid->getAbsoluteUrl('/articles/'.($objArticle->alias ?: $objArticle->id)));
                 }
@@ -207,6 +207,6 @@ class Book
         }
 
         // Link to the default page
-        return sprintf(preg_replace('/%(?!s)/', '%%', $strUrl), ($objItem->alias ?: $objItem->id));
+        return \sprintf(preg_replace('/%(?!s)/', '%%', $strUrl), $objItem->alias ?: $objItem->id);
     }
 }

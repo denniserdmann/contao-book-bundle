@@ -36,7 +36,7 @@ abstract class ModuleBook extends Module
      */
     protected function sortOutProtected(array $arrArchives): array
     {
-        if (empty($arrArchives)) {
+        if ([] === $arrArchives) {
             return $arrArchives;
         }
 
@@ -54,7 +54,7 @@ abstract class ModuleBook extends Module
                     $objUser = FrontendUser::getInstance();
                     $groups = StringUtil::deserialize($objArchive->groups);
 
-                    if (empty($groups) || !\is_array($groups) || !\is_array($objUser->groups) || !\count(array_intersect($groups, $objUser->groups))) {
+                    if (empty($groups) || !\is_array($groups) || !\is_array($objUser->groups) || [] === array_intersect($groups, $objUser->groups)) {
                         continue;
                     }
                 }
@@ -128,7 +128,7 @@ abstract class ModuleBook extends Module
             $categories = StringUtil::deserialize($objItem->categories);
 
             foreach ($categories as $category) {
-                $objBookCategoryModel = BookCategoryModel::findByPk($category);
+                $objBookCategoryModel = BookCategoryModel::findById($category);
                 $objTemplate->category_models[] = $objBookCategoryModel;
                 $objCategories[] = $objBookCategoryModel->alias;
 
@@ -174,9 +174,10 @@ abstract class ModuleBook extends Module
 
                     // Link to the book reader
                     $objTemplate->href = $objTemplate->link;
-                    $objTemplate->linkTitle = StringUtil::specialchars(sprintf($GLOBALS['TL_LANG']['MSC']['readMore'], $objItem->headline), true);
+                    $objTemplate->linkTitle = StringUtil::specialchars(\sprintf($GLOBALS['TL_LANG']['MSC']['readMore'], $objItem->headline), true);
 
-                    // If the external link is opened in a new window, open the image link in a new window, too
+                    // If the external link is opened in a new window, open the image link in a new
+                    // window, too
                     if ('external' === $objTemplate->source && $objTemplate->target) {
                         $objTemplate->attributes .= ' target="_blank"';
                     }
@@ -229,12 +230,12 @@ abstract class ModuleBook extends Module
     {
         // Internal link
         if ('external' !== $objItem->source) {
-            return sprintf(
+            return \sprintf(
                 '<a href="%s" title="%s">%s%s</a>',
                 Book::generateBookUrl($objItem, $blnAddArchive),
-                StringUtil::specialchars(sprintf($GLOBALS['TL_LANG']['MSC']['readMore'], $objItem->headline), true),
+                StringUtil::specialchars(\sprintf($GLOBALS['TL_LANG']['MSC']['readMore'], $objItem->headline), true),
                 $strLink,
-                ($blnIsReadMore ? ' <span class="invisible">'.$objItem->headline.'</span>' : '')
+                $blnIsReadMore ? ' <span class="invisible">'.$objItem->headline.'</span>' : '',
             );
         }
 
@@ -248,12 +249,12 @@ abstract class ModuleBook extends Module
         }
 
         // External link
-        return sprintf(
+        return \sprintf(
             '<a href="%s" title="%s"%s>%s</a>',
             $strArticleUrl,
-            StringUtil::specialchars(sprintf($GLOBALS['TL_LANG']['MSC']['open'], $strArticleUrl)),
+            StringUtil::specialchars(\sprintf($GLOBALS['TL_LANG']['MSC']['open'], $strArticleUrl)),
             $attributes,
-            $strLink
+            $strLink,
         );
     }
 }

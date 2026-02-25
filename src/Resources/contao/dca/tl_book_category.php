@@ -149,8 +149,6 @@ class tl_book_category extends Backend
     /**
      * Auto-generate the book alias if it has not been set yet.
      *
-     * @param mixed $varValue
-     *
      * @throws Exception
      */
     public function generateAlias($varValue, DataContainer $dc): string

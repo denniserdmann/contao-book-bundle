@@ -34,6 +34,22 @@ use ErdmannFreunde\BookBundle\Models\BookModel;
  */
 class ModuleBookArchive extends ModuleBook
 {
+    public $book_archives;
+
+    public $book_readerModule;
+
+    public $strColumn;
+
+    public $book_jumpToCurrent;
+
+    public $book_format;
+
+    public $headline;
+
+    public $perPage;
+
+    public $id;
+
     protected $strTemplate = 'mod_bookarchive';
 
     public function generate(): string
@@ -42,7 +58,7 @@ class ModuleBookArchive extends ModuleBook
 
         if ($request && System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest($request)) {
             $objTemplate = new BackendTemplate('be_wildcard');
-            $objTemplate->wildcard = '### '.mb_strtoupper($GLOBALS['TL_LANG']['FMD']['bookarchive'][0]).' ###';
+            $objTemplate->wildcard = '### '.mb_strtoupper((string) $GLOBALS['TL_LANG']['FMD']['bookarchive'][0]).' ###';
             $objTemplate->title = $this->headline;
             $objTemplate->id = $this->id;
             $objTemplate->link = $this->name;
@@ -54,7 +70,7 @@ class ModuleBookArchive extends ModuleBook
         $this->book_archives = $this->sortOutProtected(StringUtil::deserialize($this->book_archives));
 
         // No book archives available
-        if (empty($this->book_archives)) {
+        if ([] === $this->book_archives) {
             return '';
         }
 
@@ -110,17 +126,17 @@ class ModuleBookArchive extends ModuleBook
 
         // Create the date object
         try {
-            if ($intYear) {
+            if (0 !== $intYear) {
                 $objDate = new Date((string) $intYear, 'Y');
                 $intBegin = $objDate->yearBegin;
                 $intEnd = $objDate->yearEnd;
                 $this->headline .= ' '.date('Y', $objDate->tstamp);
-            } elseif ($intMonth) {
+            } elseif (0 !== $intMonth) {
                 $objDate = new Date((string) $intMonth, 'Ym');
                 $intBegin = $objDate->monthBegin;
                 $intEnd = $objDate->monthEnd;
                 $this->headline .= ' '.Date::parse('F Y', $objDate->tstamp);
-            } elseif ($intDay) {
+            } elseif (0 !== $intDay) {
                 $objDate = new Date((string) $intDay, 'Ymd');
                 $intBegin = $objDate->dayBegin;
                 $intEnd = $objDate->dayEnd;

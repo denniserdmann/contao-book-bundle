@@ -31,6 +31,24 @@ use ErdmannFreunde\BookBundle\Models\BookModel;
  */
 class ModuleBookList extends ModuleBook
 {
+    public $book_filter_reset;
+
+    public $book_filter;
+
+    public $skipFirst;
+
+    public $numberOfItems;
+
+    public $book_featured;
+
+    public $filter_categories;
+
+    public $book_archives;
+
+    public $perPage;
+
+    public $id;
+
     protected $strTemplate = 'mod_booklist';
 
     /**
@@ -43,7 +61,7 @@ class ModuleBookList extends ModuleBook
         if ($request && System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest($request)) {
             $objTemplate = new BackendTemplate('be_wildcard');
 
-            $objTemplate->wildcard = '### '.mb_strtoupper($GLOBALS['TL_LANG']['FMD']['booklist'][0]).' ###';
+            $objTemplate->wildcard = '### '.mb_strtoupper((string) $GLOBALS['TL_LANG']['FMD']['booklist'][0]).' ###';
             $objTemplate->title = $this->headline;
             $objTemplate->id = $this->id;
             $objTemplate->link = $this->name;
@@ -111,7 +129,7 @@ class ModuleBookList extends ModuleBook
         }
 
         $arrPids = StringUtil::deserialize($this->book_archives);
-        $arrColumns[] = 'tl_book.pid IN('.implode(',', array_map('\intval', $arrPids)).')';
+        $arrColumns[] = 'tl_book.pid IN('.implode(',', array_map(\intval(...), $arrPids)).')';
 
         $arrCategoryIds = [];
 
@@ -120,8 +138,7 @@ class ModuleBookList extends ModuleBook
             $arrCategoryIds = StringUtil::deserialize($this->filter_categories);
         }
 
-        // add book pagination
-        // Get the total number of items
+        // add book pagination Get the total number of items
         $intTotal = $this->countItems($arrPids, $blnFeatured, $arrCategoryIds);
 
         if ($intTotal < 1) {
@@ -161,7 +178,7 @@ class ModuleBookList extends ModuleBook
             $this->Template->pagination = $objPagination->generate("\n  ");
         }
 
-        $objItems = $this->fetchItems($arrPids, $blnFeatured, ($limit ?: 0), $offset, $arrCategoryIds);
+        $objItems = $this->fetchItems($arrPids, $blnFeatured, $limit ?: 0, $offset, $arrCategoryIds);
 
         if (null !== $objItems) {
             $this->Template->items = $this->parseItems($objItems);
@@ -170,10 +187,8 @@ class ModuleBookList extends ModuleBook
 
     /**
      * Count the total matching items.
-     *
-     * @return int
      */
-    protected function countItems(array $bookArchives, ?bool $blnFeatured, array $arrCategories): int
+    protected function countItems(array $bookArchives, bool|null $blnFeatured, array $arrCategories): int
     {
         return BookModel::countPublishedByPids($bookArchives, $blnFeatured, $arrCategories);
     }
@@ -183,7 +198,7 @@ class ModuleBookList extends ModuleBook
      *
      * @return Collection|array<BookModel>|BookModel|null
      */
-    protected function fetchItems(array $bookArchives, ?bool $blnFeatured, int $limit, int $offset, array $arrCategories)
+    protected function fetchItems(array $bookArchives, bool|null $blnFeatured, int $limit, int $offset, array $arrCategories)
     {
         $order = 'tl_book.endDate IS NOT NULL, tl_book.endDate DESC';
 

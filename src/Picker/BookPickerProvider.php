@@ -22,8 +22,12 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class BookPickerProvider extends AbstractInsertTagPickerProvider implements DcaPickerProviderInterface
 {
-    public function __construct(FactoryInterface $menuFactory, RouterInterface $router, ?TranslatorInterface $translator, private readonly Security $security)
-    {
+    public function __construct(
+        FactoryInterface $menuFactory,
+        RouterInterface $router,
+        TranslatorInterface|null $translator,
+        private readonly Security $security,
+    ) {
         parent::__construct($menuFactory, $router, $translator);
     }
 
@@ -46,7 +50,7 @@ class BookPickerProvider extends AbstractInsertTagPickerProvider implements DcaP
         return $this->isMatchingInsertTag($config);
     }
 
-    public function getDcaTable(?PickerConfig $config = null): string
+    public function getDcaTable(PickerConfig|null $config = null): string
     {
         return 'tl_book';
     }
@@ -62,7 +66,7 @@ class BookPickerProvider extends AbstractInsertTagPickerProvider implements DcaP
             }
 
             if ($value) {
-                $attributes['value'] = array_map('intval', explode(',', $value));
+                $attributes['value'] = array_map(intval(...), explode(',', $value));
             }
 
             return $attributes;
@@ -85,10 +89,10 @@ class BookPickerProvider extends AbstractInsertTagPickerProvider implements DcaP
             return (string) $value;
         }
 
-        return sprintf($this->getInsertTag($config), $value);
+        return \sprintf($this->getInsertTag($config), $value);
     }
 
-    protected function getRouteParameters(?PickerConfig $config = null): array
+    protected function getRouteParameters(PickerConfig|null $config = null): array
     {
         return ['do' => 'book'];
     }

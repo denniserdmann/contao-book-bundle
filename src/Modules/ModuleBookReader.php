@@ -29,6 +29,10 @@ use ErdmannFreunde\BookBundle\Models\BookModel;
  */
 class ModuleBookReader extends ModuleBook
 {
+    public $book_archives;
+
+    public $id;
+
     /**
      * Template.
      *
@@ -48,7 +52,7 @@ class ModuleBookReader extends ModuleBook
         if ($request && System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest($request)) {
             $objTemplate = new BackendTemplate('be_wildcard');
 
-            $objTemplate->wildcard = '### '.mb_strtoupper($GLOBALS['TL_LANG']['FMD']['bookreader'][0]).' ###';
+            $objTemplate->wildcard = '### '.mb_strtoupper((string) $GLOBALS['TL_LANG']['FMD']['bookreader'][0]).' ###';
             $objTemplate->title = $this->headline;
             $objTemplate->id = $this->id;
             $objTemplate->link = $this->name;
@@ -73,7 +77,7 @@ class ModuleBookReader extends ModuleBook
 
         $this->book_archives = $this->sortOutProtected(StringUtil::deserialize($this->book_archives));
 
-        if (empty($this->book_archives) || !\is_array($this->book_archives)) {
+        if ([] === $this->book_archives || !\is_array($this->book_archives)) {
             throw new InternalServerErrorException('The news reader ID '.$this->id.' has no archives specified.', $this->id);
         }
 
@@ -94,7 +98,7 @@ class ModuleBookReader extends ModuleBook
         // Get the book item
         $objItem = BookModel::findPublishedByParentAndIdOrAlias(Input::get('items'), $this->book_archives);
 
-        if (null === $objItem) {
+        if (!$objItem instanceof BookModel) {
             throw new PageNotFoundException('Page not found: '.Environment::get('uri'));
         }
 
