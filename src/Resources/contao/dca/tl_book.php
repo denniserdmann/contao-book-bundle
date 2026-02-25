@@ -15,14 +15,11 @@ use Contao\BackendUser;
 use Contao\Config;
 use Contao\CoreBundle\Exception\AccessDeniedException;
 use Contao\DataContainer;
-use Contao\Date;
 use Contao\DC_Table;
-use Contao\Image;
 use Contao\Input;
 use Contao\PageModel;
 use Contao\StringUtil;
 use Contao\System;
-use Contao\Versions;
 use ErdmannFreunde\BookBundle\Classes\Book;
 use ErdmannFreunde\BookBundle\Models\BookArchiveModel;
 use ErdmannFreunde\BookBundle\Models\BookModel;
@@ -49,64 +46,31 @@ $GLOBALS['TL_DCA']['tl_book'] = [
     // List
     'list' => [
         'sorting' => [
-            'mode' => 1,
-            'fields' => ['endDate'],
-            'panelLayout' => 'filter;sort,search,limit',
+            'mode' => DataContainer::MODE_PARENT,
+            'fields' => ['endDate DESC'],
             'headerFields' => ['title'],
-            'child_record_callback' => ['tl_book', 'listItems'],
-            'paste_button_callback' => ['tl_book', 'pasteElement'],
+            'panelLayout' => 'search,filter,sort,limit',
+            'defaultSearchField' => 'title',
         ],
         'label' => [
-            'fields' => ['title', Date::parse('d.M.Y', 'endDate')],
-            'format' => '%s <span style="color:#999;padding-left:3px">[%s]</span>',
-        ],
-        'global_operations' => [
-            'all' => [
-                'label' => &$GLOBALS['TL_LANG']['MSC']['all'],
-                'href' => 'act=select',
-                'class' => 'header_edit_all',
-                'attributes' => 'onclick="Backend.getScrollOffset()" accesskey="e"',
-            ],
+            'fields' => ['title', 'endDate'],
+            'format' => '%s <span class="label-info">[%s]</span>',
         ],
         'operations' => [
-            'edit' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book']['edit'],
-                'href' => 'act=edit',
-                'icon' => 'edit.gif',
-            ],
-            'copy' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book']['copy'],
-                'href' => 'act=paste&amp;mode=copy',
-                'icon' => 'copy.gif',
-            ],
-            'cut' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book']['cut'],
-                'href' => 'act=paste&amp;mode=cut',
-                'icon' => 'cut.gif',
-            ],
-            'delete' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book']['delete'],
-                'href' => 'act=delete',
-                'icon' => 'delete.gif',
-                'attributes' => 'onclick="if(!confirm(\''.($GLOBALS['TL_LANG']['MSC']['deleteConfirm'] ?? null).'\'))return false;Backend.getScrollOffset()"',
-            ],
+            'edit',
+            'copy',
+            'cut',
+            'delete',
             'toggle' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book']['toggle'],
-                'icon' => 'visible.gif',
-                'attributes' => 'onclick="Backend.getScrollOffset();return AjaxRequest.toggleVisibility(this,%s)"',
-                'button_callback' => ['tl_book', 'toggleIcon'],
+                'href' => 'act=toggle&amp;field=published',
+                'icon' => 'visible.svg',
+                'showInHeader' => true,
             ],
             'feature' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book']['feature'],
+                'href' => 'act=toggle&amp;field=featured',
                 'icon' => 'featured.svg',
-                'attributes' => 'onclick="Backend.getScrollOffset();return AjaxRequest.toggleFeatured(this,%s)"',
-                'button_callback' => ['tl_book', 'iconFeatured'],
             ],
-            'show' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book']['show'],
-                'href' => 'act=show',
-                'icon' => 'show.gif',
-            ],
+            'show',
         ],
     ],
 
@@ -504,16 +468,6 @@ class tl_book extends Backend
     }
 
     /**
-     * Add the type of input field.
-     *
-     * @param array $arrRow
-     */
-    public function listItems($arrRow): string
-    {
-        return '<div class="tl_content_left">'.$arrRow['title'].' <span style="color:#999;padding-left:3px">['.Date::parse(Config::get('dateFormat'), $arrRow['endDate']).']</span></div>';
-    }
-
-    /**
      * Auto-generate the book alias if it has not been set yet.
      *
      * @return string
@@ -658,189 +612,6 @@ class tl_book extends Backend
         }
 
         return $arrOptions;
-    }
-
-    /**
-     * Return the "toggle visibility" button.
-     */
-    public function toggleIcon(array $row, string|null $href, string $label, string $title, string $icon, string $attributes): string
-    {
-        if (Input::get('tid')) {
-            $this->toggleVisibility(Input::get('tid'), 1 === Input::get('state'), func_num_args() <= 12 ? null : func_get_arg(12));
-            self::redirect(self::getReferer());
-        }
-
-        // Check permissions AFTER checking the tid, so hacking attempts are logged
-        if (!$this->User->hasAccess('tl_book::published', 'alexf')) {
-            return '';
-        }
-
-        $href .= '&amp;tid='.$row['id'].'&amp;state='.($row['published'] ? '' : 1);
-
-        if (!$row['published']) {
-            $icon = 'invisible.svg';
-        }
-
-        return '<a href="'.self::addToUrl($href).'" title="'.StringUtil::specialchars($title).'"'.$attributes.'>'.Image::getHtml($icon, $label, 'data-state="'.($row['published'] ? 1 : 0).'"').'</a> ';
-    }
-
-    /**
-     * Disable/enable a book item.
-     *
-     * @param int  $intId
-     * @param bool $blnVisible
-     */
-    public function toggleVisibility($intId, $blnVisible, DataContainer|null $dc = null): void
-    {
-        // Set the ID and action
-        Input::setGet('id', $intId);
-        Input::setGet('act', 'toggle');
-
-        if ($dc) {
-            $dc->id = $intId; // see #8043
-        }
-
-        // Trigger the onload_callback
-        if (is_array($GLOBALS['TL_DCA']['tl_book']['config']['onload_callback'])) {
-            foreach ($GLOBALS['TL_DCA']['tl_book']['config']['onload_callback'] as $callback) {
-                if (is_array($callback)) {
-                    $this->import($callback[0]);
-                    $this->{$callback[0]}->{$callback[1]}($dc);
-                } elseif (is_callable($callback)) {
-                    $callback($dc);
-                }
-            }
-        }
-
-        // Check the field access
-        if (!$this->User->hasAccess('tl_book::published', 'alexf')) {
-            throw new AccessDeniedException('Not enough permissions to publish/unpublish book item ID '.$intId.'.');
-        }
-
-        $objRow = $this->Database->prepare('SELECT * FROM tl_book WHERE id=?')
-            ->limit(1)
-            ->execute($intId)
-        ;
-
-        if ($objRow->numRows < 1) {
-            throw new AccessDeniedException('Invalid book item ID '.$intId.'.');
-        }
-
-        // Set the current record
-        if ($dc) {
-            $dc->activeRecord = $objRow;
-        }
-
-        $objVersions = new Versions('tl_book', $intId);
-        $objVersions->initialize();
-
-        // Trigger the save_callback
-        if (is_array($GLOBALS['TL_DCA']['tl_book']['fields']['published']['save_callback'])) {
-            foreach ($GLOBALS['TL_DCA']['tl_book']['fields']['published']['save_callback'] as $callback) {
-                if (is_array($callback)) {
-                    $this->import($callback[0]);
-                    $blnVisible = $this->{$callback[0]}->{$callback[1]}($blnVisible, $dc);
-                } elseif (is_callable($callback)) {
-                    $blnVisible = $callback($blnVisible, $dc);
-                }
-            }
-        }
-
-        $time = time();
-
-        // Update the database
-        $this->Database->prepare("UPDATE tl_book SET tstamp=$time, published='".($blnVisible ? '1' : '')."' WHERE id=?")
-            ->execute($intId)
-        ;
-
-        if ($dc) {
-            $dc->activeRecord->tstamp = $time;
-            $dc->activeRecord->published = ($blnVisible ? '1' : '');
-        }
-
-        // Trigger the onsubmit_callback
-        if (is_array($GLOBALS['TL_DCA']['tl_book']['config']['onsubmit_callback'])) {
-            foreach ($GLOBALS['TL_DCA']['tl_book']['config']['onsubmit_callback'] as $callback) {
-                if (is_array($callback)) {
-                    $this->import($callback[0]);
-                    $this->{$callback[0]}->{$callback[1]}($dc);
-                } elseif (is_callable($callback)) {
-                    $callback($dc);
-                }
-            }
-        }
-
-        $objVersions->create();
-    }
-
-    public function pasteElement(DataContainer $dc, $row, $table, $cr, $arrClipboard): string
-    {
-        $imagePasteAfter = Image::getHtml('pasteafter.gif', sprintf($GLOBALS['TL_LANG'][$table]['pasteafter'][1], $row['id']));
-
-        return '<a href="'.self::addToUrl('act='.$arrClipboard['mode'].'&mode=1&pid='.$row['id']).'" title="'.StringUtil::specialchars(sprintf($GLOBALS['TL_LANG'][$table]['pasteafter'][1], $row['id'])).'" onclick="Backend.getScrollOffset()">'.$imagePasteAfter.'</a> ';
-    }
-
-    /**
-     * Return the "feature/unfeature element" button.
-     */
-    public function iconFeatured(array $row, string|null $href, string $label, string $title, string $icon, string $attributes): string
-    {
-        if (Input::get('fid')) {
-            $this->toggleFeatured(Input::get('fid'), 1 === Input::get('state'), @func_get_arg(12) ?: null);
-            self::redirect(self::getReferer());
-        }
-
-        // Check permissions AFTER checking the fid, so hacking attempts are logged
-        if (!$this->User->hasAccess('tl_book::featured', 'alexf')) {
-            return '';
-        }
-
-        $href .= '&amp;fid='.$row['id'].'&amp;state='.($row['featured'] ? '' : 1);
-
-        if (!$row['featured']) {
-            $icon = 'featured_.svg';
-        }
-
-        return '<a href="'.self::addToUrl($href).'" title="'.StringUtil::specialchars($title).'"'.$attributes.'>'.Image::getHtml($icon, $label, 'data-state="'.($row['featured'] ? 1 : 0).'"').'</a> ';
-    }
-
-    /**
-     * Feature/unfeature a book item.
-     */
-    public function toggleFeatured(int $intId, bool $blnVisible, DataContainer|null $dc = null): void
-    {
-        // Check permissions to edit
-        Input::setGet('id', $intId);
-        Input::setGet('act', 'feature');
-
-        $this->checkPermission();
-
-        // Check permissions to feature
-        if (!$this->User->hasAccess('tl_book::featured', 'alexf')) {
-            throw new AccessDeniedException('Not enough permissions to feature/unfeature book item ID '.$intId.'.');
-        }
-
-        $objVersions = new Versions('tl_book', $intId);
-        $objVersions->initialize();
-
-        // Trigger the save_callback
-        if (is_array($GLOBALS['TL_DCA']['tl_book']['fields']['featured']['save_callback'])) {
-            foreach ($GLOBALS['TL_DCA']['tl_book']['fields']['featured']['save_callback'] as $callback) {
-                if (is_array($callback)) {
-                    $this->import($callback[0]);
-                    $blnVisible = $this->{$callback[0]}->{$callback[1]}($blnVisible, $dc);
-                } elseif (is_callable($callback)) {
-                    $blnVisible = $callback($blnVisible, $this);
-                }
-            }
-        }
-
-        // Update the database
-        $this->Database->prepare('UPDATE tl_book SET tstamp='.time().", featured='".($blnVisible ? 1 : '')."' WHERE id=?")
-            ->execute($intId)
-        ;
-
-        $objVersions->create();
     }
 
     /**

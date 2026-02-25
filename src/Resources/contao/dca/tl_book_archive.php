@@ -15,7 +15,6 @@ use Contao\BackendUser;
 use Contao\CoreBundle\Exception\AccessDeniedException;
 use Contao\DataContainer;
 use Contao\DC_Table;
-use Contao\Image;
 use Contao\Input;
 use Contao\PageModel;
 use Contao\StringUtil;
@@ -51,59 +50,15 @@ $GLOBALS['TL_DCA']['tl_book_archive'] = [
     // List
     'list' => [
         'sorting' => [
-            'mode' => 1,
+            'mode' => DataContainer::MODE_SORTED,
             'fields' => ['title'],
-            'flag' => 1,
-            'panelLayout' => 'search,limit',
+            'flag' => DataContainer::SORT_INITIAL_LETTER_ASC,
+            'panelLayout' => 'search,filter,limit',
+            'defaultSearchField' => 'title',
         ],
         'label' => [
             'fields' => ['title'],
             'format' => '%s',
-        ],
-        'global_operations' => [
-            'categories' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book_archive']['categories'],
-                'href' => 'table=tl_book_category',
-                'icon' => 'bundles/eufbook/icon.png',
-                'attributes' => 'onclick="Backend.getScrollOffset()" accesskey="c"',
-            ],
-            'all' => [
-                'label' => &$GLOBALS['TL_LANG']['MSC']['all'],
-                'href' => 'act=select',
-                'class' => 'header_edit_all',
-                'attributes' => 'onclick="Backend.getScrollOffset()" accesskey="e"',
-            ],
-        ],
-        'operations' => [
-            'edit' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book_archive']['edit'],
-                'href' => 'table=tl_book',
-                'icon' => 'edit.svg',
-            ],
-            'editheader' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book_archive']['editheader'],
-                'href' => 'act=edit',
-                'icon' => 'header.svg',
-                'button_callback' => ['tl_book_archive', 'editHeader'],
-            ],
-            'copy' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book_archive']['copy'],
-                'href' => 'act=copy',
-                'icon' => 'copy.svg',
-                'button_callback' => ['tl_book_archive', 'copyArchive'],
-            ],
-            'delete' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book_archive']['delete'],
-                'href' => 'act=delete',
-                'icon' => 'delete.svg',
-                'attributes' => 'onclick="if(!confirm(\''.($GLOBALS['TL_LANG']['MSC']['deleteConfirm'] ?? null).'\'))return false;Backend.getScrollOffset()"',
-                'button_callback' => ['tl_book_archive', 'deleteArchive'],
-            ],
-            'show' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book_archive']['show'],
-                'href' => 'act=show',
-                'icon' => 'show.svg',
-            ],
         ],
     ],
 
@@ -326,30 +281,6 @@ class tl_book_archive extends Backend
             $root[] = $insertId;
             $this->User->book = $root;
         }
-    }
-
-    /**
-     * Return the edit header button.
-     */
-    public function editHeader(array $row, string $href, string $label, string $title, string $icon, string $attributes): string
-    {
-        return ($this->User->isAdmin || \count(preg_grep('/^tl_book_archive::/', $this->User->alexf ?? [])) > 0) ? '<a href="'.self::addToUrl($href.'&amp;id='.$row['id']).'" title="'.StringUtil::specialchars($title).'"'.$attributes.'>'.Image::getHtml($icon, $label).'</a> ' : Image::getHtml(preg_replace('/\.svg$/i', '_.svg', $icon)).' ';
-    }
-
-    /**
-     * Return the copy archive button.
-     */
-    public function copyArchive(array $row, string $href, string $label, string $title, string $icon, string $attributes): string
-    {
-        return $this->User->hasAccess('create', 'bookp') ? '<a href="'.self::addToUrl($href.'&amp;id='.$row['id']).'" title="'.StringUtil::specialchars($title).'"'.$attributes.'>'.Image::getHtml($icon, $label).'</a> ' : Image::getHtml(preg_replace('/\.svg$/i', '_.svg', $icon)).' ';
-    }
-
-    /**
-     * Return the delete archive button.
-     */
-    public function deleteArchive(array $row, string $href, string $label, string $title, string $icon, string $attributes): string
-    {
-        return $this->User->hasAccess('delete', 'bookp') ? '<a href="'.self::addToUrl($href.'&amp;id='.$row['id']).'" title="'.StringUtil::specialchars($title).'"'.$attributes.'>'.Image::getHtml($icon, $label).'</a> ' : Image::getHtml(preg_replace('/\.svg$/i', '_.svg', $icon)).' ';
     }
 
     /**

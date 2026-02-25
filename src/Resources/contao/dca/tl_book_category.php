@@ -38,50 +38,15 @@ $GLOBALS['TL_DCA']['tl_book_category'] = [
     // List
     'list' => [
         'sorting' => [
-            'mode' => 1,
-            'flag' => 1,
-            'panelLayout' => 'sort,filter;search,limit',
+            'mode' => DataContainer::MODE_SORTED,
             'fields' => ['title'],
+            'flag' => DataContainer::SORT_INITIAL_LETTER_ASC,
+            'panelLayout' => 'search,filter,limit',
+            'defaultSearchField' => 'title',
         ],
         'label' => [
             'fields' => ['title'],
-        ],
-        'global_operations' => [
-            'toggleNodes' => [
-                'label' => &$GLOBALS['TL_LANG']['MSC']['toggleAll'],
-                'href' => 'ptg=all',
-                'class' => 'header_toggle',
-            ],
-            'all' => [
-                'label' => &$GLOBALS['TL_LANG']['MSC']['all'],
-                'href' => 'act=select',
-                'class' => 'header_edit_all',
-                'attributes' => 'onclick="Backend.getScrollOffset()" accesskey="e"',
-            ],
-        ],
-        'operations' => [
-            'edit' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book_category']['edit'],
-                'href' => 'act=edit',
-                'icon' => 'edit.gif',
-            ],
-            'copy' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book_category']['copy'],
-                'href' => 'act=paste&amp;mode=copy',
-                'icon' => 'copy.gif',
-                'attributes' => 'onclick="Backend.getScrollOffset()"',
-            ],
-            'delete' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book_category']['delete'],
-                'href' => 'act=delete',
-                'icon' => 'delete.gif',
-                'attributes' => 'onclick="if(!confirm(\''.($GLOBALS['TL_LANG']['MSC']['deleteConfirm'] ?? null).'\'))return false;Backend.getScrollOffset()"',
-            ],
-            'show' => [
-                'label' => &$GLOBALS['TL_LANG']['tl_book_category']['show'],
-                'href' => 'act=show',
-                'icon' => 'show.gif',
-            ],
+            'format' => '%s',
         ],
     ],
 
