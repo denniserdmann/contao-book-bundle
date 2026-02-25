@@ -333,7 +333,7 @@ class tl_book_archive extends Backend
      */
     public function editHeader(array $row, string $href, string $label, string $title, string $icon, string $attributes): string
     {
-        return $this->User->canEditFieldsOf('tl_book_archive') ? '<a href="'.self::addToUrl($href.'&amp;id='.$row['id']).'" title="'.StringUtil::specialchars($title).'"'.$attributes.'>'.Image::getHtml($icon, $label).'</a> ' : Image::getHtml(preg_replace('/\.svg$/i', '_.svg', $icon)).' ';
+        return ($this->User->isAdmin || \count(preg_grep('/^tl_book_archive::/', $this->User->alexf ?? [])) > 0) ? '<a href="'.self::addToUrl($href.'&amp;id='.$row['id']).'" title="'.StringUtil::specialchars($title).'"'.$attributes.'>'.Image::getHtml($icon, $label).'</a> ' : Image::getHtml(preg_replace('/\.svg$/i', '_.svg', $icon)).' ';
     }
 
     /**
