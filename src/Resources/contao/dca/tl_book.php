@@ -134,7 +134,7 @@ $GLOBALS['TL_DCA']['tl_book'] = [
 
     // Subpalettes
     'subpalettes' => [
-        'addImage'        => 'singleSRC,size,floating,imagemargin,fullsize,overwriteMeta',
+        'addImage'        => 'singleSRC,size,floating,fullsize,overwriteMeta',
         'source_internal' => 'jumpTo',
         'source_article'  => 'articleId',
         'source_external' => 'url,target',
@@ -306,13 +306,6 @@ $GLOBALS['TL_DCA']['tl_book'] = [
                 return System::getContainer()->get('contao.image.image_sizes')->getOptionsForUser(BackendUser::getInstance());
             },
             'sql'              => "varchar(64) NOT NULL default ''",
-        ],
-        'imagemargin'   => [
-            'exclude'   => true,
-            'inputType' => 'trbl',
-            'options'   => $GLOBALS['TL_CSS_UNITS'],
-            'eval'      => ['includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "varchar(128) NOT NULL default ''",
         ],
         'imageUrl'      => [
             'exclude'   => true,
