@@ -167,8 +167,8 @@ class ModuleBookArchive extends ModuleBook
         $arrOptions = [];
 
         $arrOptions['order'] = match ($this->book_order) {
-            'order_headline_asc' => "$t.headline",
-            'order_headline_desc' => "$t.headline DESC",
+            'order_headline_asc' => "$t.title",
+            'order_headline_desc' => "$t.title DESC",
             'order_random' => 'RAND()',
             'order_date_asc' => "$t.endDate",
             default => "$t.endDate DESC",

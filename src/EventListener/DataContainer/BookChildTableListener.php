@@ -38,7 +38,7 @@ class BookChildTableListener extends AbstractChildTableListener
         $options = [];
 
         foreach ($models as $model) {
-            $options[$model->id] = \sprintf('%s [ID %s]', $model->headline, $model->id);
+            $options[$model->id] = \sprintf('%s [ID %s]', $model->title, $model->id);
         }
 
         return $options;

@@ -79,7 +79,7 @@ abstract class ModuleBook extends Module
 
         $objTemplate->class = ('' !== $objItem->cssClass ? ' '.$objItem->cssClass : '').$strClass;
         $objTemplate->headline = $objItem->title;
-        $objTemplate->linkHeadline = $this->generateLink($objItem->headline, $objItem, $blnAddArchive);
+        $objTemplate->linkHeadline = $this->generateLink($objItem->title, $objItem, $blnAddArchive);
         $objTemplate->more = $this->generateLink($GLOBALS['TL_LANG']['MSC']['more'], $objItem, $blnAddArchive, true);
         $objTemplate->link = Book::generateBookUrl($objItem, $blnAddArchive);
         $objTemplate->count = $intCount; // see #5708
@@ -156,7 +156,7 @@ abstract class ModuleBook extends Module
 
                     // Link to the book reader
                     $objTemplate->href = $objTemplate->link;
-                    $objTemplate->linkTitle = StringUtil::specialchars(\sprintf($GLOBALS['TL_LANG']['MSC']['readMore'], $objItem->headline), true);
+                    $objTemplate->linkTitle = StringUtil::specialchars(\sprintf($GLOBALS['TL_LANG']['MSC']['readMore'], $objItem->title), true);
 
                     // If the external link is opened in a new window, open the image link in a new
                     // window, too
@@ -215,9 +215,9 @@ abstract class ModuleBook extends Module
             return \sprintf(
                 '<a href="%s" title="%s">%s%s</a>',
                 Book::generateBookUrl($objItem, $blnAddArchive),
-                StringUtil::specialchars(\sprintf($GLOBALS['TL_LANG']['MSC']['readMore'], $objItem->headline), true),
+                StringUtil::specialchars(\sprintf($GLOBALS['TL_LANG']['MSC']['readMore'], $objItem->title), true),
                 $strLink,
-                $blnIsReadMore ? ' <span class="invisible">'.$objItem->headline.'</span>' : '',
+                $blnIsReadMore ? ' <span class="invisible">'.$objItem->title.'</span>' : '',
             );
         }
 

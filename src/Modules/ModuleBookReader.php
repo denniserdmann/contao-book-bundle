@@ -104,8 +104,8 @@ class ModuleBookReader extends ModuleBook
         // Overwrite the page title (see #2853 and #4955 and #87)
         if ($objItem->pageTitle) {
             $objPage->pageTitle = $objItem->pageTitle;
-        } elseif ($objItem->headline) {
-            $objPage->pageTitle = strip_tags(StringUtil::stripInsertTags($objItem->headline));
+        } elseif ($objItem->title) {
+            $objPage->pageTitle = strip_tags(StringUtil::stripInsertTags($objItem->title));
         }
 
         // Overwrite the page description
