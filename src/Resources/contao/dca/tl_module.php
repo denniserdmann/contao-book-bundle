@@ -23,7 +23,7 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['book_archives'] = [
     'label' => &$GLOBALS['TL_LANG']['tl_module']['book_archives'],
     'exclude' => true,
     'inputType' => 'checkbox',
-    'options_callback' => ['tl_module_book', 'getBookArchives'],
+    'options_callback' => ['tl_module', 'getBookArchives'],
     'eval' => ['multiple' => true, 'mandatory' => true],
     'sql' => 'blob NULL',
 ];
@@ -33,7 +33,7 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['book_template'] = [
     'default' => 'book_short',
     'exclude' => true,
     'inputType' => 'select',
-    'options_callback' => ['tl_module_book', 'getBookTemplates'],
+    'options_callback' => ['tl_module', 'getBookTemplates'],
     'eval' => ['tl_class' => 'w50'],
     'sql' => "varchar(32) NOT NULL default ''",
 ];
@@ -79,14 +79,14 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['book_readerModule'] = [
     'label' => &$GLOBALS['TL_LANG']['tl_module']['book_readerModule'],
     'exclude' => true,
     'inputType' => 'select',
-    'options_callback' => ['tl_module_book', 'getReaderModules'],
+    'options_callback' => ['tl_module', 'getReaderModules'],
     'reference' => &$GLOBALS['TL_LANG']['tl_module'],
     'eval' => ['includeBlankOption' => true, 'tl_class' => 'w50'],
     'sql' => 'int(10) unsigned NOT NULL default 0',
 ];
 
 /**
- * Class tl_module_book.
+ * Class tl_module.
  *
  * Provide miscellaneous methods that are used by the data configuration array.
  */
